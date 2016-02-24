@@ -1,0 +1,8 @@
+*.suo
+Build/
+bin/
+*/bin/
+obj/
+*/obj/
+Thumbs.db
+.vs/

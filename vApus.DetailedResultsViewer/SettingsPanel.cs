@@ -129,8 +129,6 @@ namespace vApus.DetailedResultsViewer {
                     if (db.StartsWith("vapus", StringComparison.OrdinalIgnoreCase)) dbs.Rows.Add(db);
                 }
 
-                int count = dbs.Rows.Count;
-
                 foreach (DataRow dbsr in dbs.Rows) {
                     string database = dbsr.ItemArray[0] as string;
                     try {

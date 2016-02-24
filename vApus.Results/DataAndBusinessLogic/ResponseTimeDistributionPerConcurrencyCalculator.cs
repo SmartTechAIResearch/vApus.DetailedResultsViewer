@@ -325,7 +325,6 @@ namespace vApus.Results {
                             if (cancellationToken.IsCancellationRequested) return null;
 
                             long ttlb = 0;
-                            int delay = 0;
 
                             var rers = kvp.Value;
 
@@ -334,8 +333,6 @@ namespace vApus.Results {
                                 if (cancellationToken.IsCancellationRequested) return null;
 
                                 var rer = rers[j];
-
-                                if (rer.DelayInMilliseconds != 0) delay = rer.DelayInMilliseconds;
 
                                 if (rer.InParallelWithPrevious && prevRequestResult != null) { //For parallel requests the total time to last byte in a virtual result is calculated differently. The longest time counts for a parallel set.
                                     long diffTtlb = (rer.SentAt.AddTicks(rer.TimeToLastByteInTicks) - prevRequestResult.SentAt.AddTicks(prevRequestResult.TimeToLastByteInTicks)).Ticks;

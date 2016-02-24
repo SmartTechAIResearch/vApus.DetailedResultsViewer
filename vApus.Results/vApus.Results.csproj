@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>..\DeadCode.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -129,7 +130,6 @@
     <Compile Include="DataAndBusinessLogic\BaseResultSetCalculator.cs" />
     <Compile Include="DataAndBusinessLogic\ResponseTimeDistributionPerConcurrencyCalculator.cs" />
     <Compile Include="DataAndBusinessLogic\ReaderAndCombiner.cs" />
-    <Compile Include="DataAndBusinessLogic\Schema.cs" />
     <Compile Include="OverviewExportToExcel.cs" />
     <Compile Include="OverviewExportToExcelDialog.cs">
       <SubType>Form</SubType>
@@ -149,8 +149,6 @@
     <Compile Include="Metrics\MonitorMetricsCache.cs" />
     <Compile Include="Metrics\MonitorMetricsHelper.cs" />
     <Compile Include="Metrics\StressTestMetrics.cs" />
-    <Compile Include="Metrics\FastStressTestMetricsCache.cs" />
-    <Compile Include="Metrics\FastStressTestMetricsHelper.cs" />
     <Compile Include="Results\MonitorResult.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>

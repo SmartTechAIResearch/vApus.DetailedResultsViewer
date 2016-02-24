@@ -31,16 +31,8 @@ namespace vApus.Results {
         private string _databaseName;
 
         private DatabaseActions _databaseActions;
-        private string _passwordGUID = "{51E6A7AC-06C2-466F-B7E8-4B0A00F6A21F}";
-
-        private readonly byte[] _salt = { 0x49, 0x16, 0x49, 0x2e, 0x11, 0x1e, 0x45, 0x24, 0x86, 0x05, 0x01, 0x03, 0x62 };
-
-        private int _vApusInstanceId = -1, _stressTestId;
-        private ulong _stressTestResultId, _concurrencyResultId, _runResultId;
 
         private FunctionOutputCache _functionOutputCache = new FunctionOutputCache(); //For caching the not so stored procedure data.
-
-        private List<string> _messages = new List<string>();
         #endregion
 
         #region Properties
@@ -48,42 +40,10 @@ namespace vApus.Results {
         /// Returns null if not connected
         /// </summary>
         public string DatabaseName { get { return _databaseName; } }
-
-        /// <summary>
-        /// You can change this value for when you are distributed testing, so the right dataset is chosen.
-        /// This value is not used when filtering results in the procedures eg GetAverageConcurrentUsers.
-        /// </summary>
-        public int StressTestId {
-            get { return _stressTestId; }
-            set { lock (_lock) _stressTestId = value; }
-        }
         #endregion
 
-        #region Initialize database before stress test
         /// <summary>
-        ///     Builds the schema if needed, if no MySQL target is found or no connection could be made an exception is returned.
-        /// </summary>
-        /// <returns></returns>
-        public Exception BuildSchemaAndConnect() {
-            lock (_lock) {
-                ClearCache();
-                _databaseName = null;
-                try {
-                    _databaseName = Schema.Build();
-                    _databaseActions = Schema.GetDatabaseActionsUsingDatabase(_databaseName);
-                } catch (Exception ex) {
-                    if (_databaseActions != null) {
-                        _databaseActions.ReleaseConnection();
-                        _databaseActions = null;
-                    }
-                    return ex;
-                }
-                return null;
-            }
-        }
-
-        /// <summary>
-        ///     Only inserts if connected (Call BuildSchemaAndConnect).
+        ///     Only inserts if connected.
         /// </summary>
         /// <param name="description"></param>
         /// <param name="tags"></param>
@@ -105,389 +65,6 @@ namespace vApus.Results {
                     _databaseActions.ExecuteSQL(string.Format("INSERT INTO tags(Tag) VALUES {0};", rowsToInsert.Combine(", ")));
                 }
             }
-        }
-
-        /// <summary>
-        /// Do this last for the master, this sets _vApusInstanceId used in this class.
-        /// </summary>
-        /// <param name="hostName"></param>
-        /// <param name="ip"></param>
-        /// <param name="port"></param>
-        /// <param name="version"></param>
-        /// <param name="isMaster"></param>
-        /// <returns>Id of the stress test. 0 if BuildSchemaAndConnect was not called.</returns>
-        public int SetvApusInstance(string hostName, string ip, int port, string version, string channel, bool isMaster) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format("INSERT INTO vapusinstances(HostName, IP, Port, Version, Channel, IsMaster) VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}')",
-                        hostName, ip, port, version, channel, isMaster ? 1 : 0)
-                        );
-                    _vApusInstanceId = (int)_databaseActions.GetLastInsertId();
-                    return _vApusInstanceId;
-                }
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// This sets _stressTestId used in this class.
-        /// </summary>
-        /// <param name="vApusInstanceId"></param>
-        /// <param name="stressTest"></param>
-        /// <param name="runSynchronization"></param>
-        /// <param name="connection"></param>
-        /// <param name="connectionProxy"></param>
-        /// <param name="connectionString">Will be encrypted.</param>
-        /// <param name="scenarios"></param>
-        /// <param name="scenarioRuleSet"></param>
-        /// <param name="concurrencies"></param>
-        /// <param name="runs"></param>
-        /// <param name="minimumDelayInMilliseconds"></param>
-        /// <param name="maximumDelayInMilliseconds"></param>
-        /// <param name="shuffle"></param>
-        /// <param name="distribute"></param>
-        /// <param name="monitorBeforeInMinutes"></param>
-        /// <param name="monitorAfterInMinutes"></param>
-        /// <returns>Id of the stress test. 0 if BuildSchemaAndConnect was not called.</returns>
-        public int SetStressTest(string stressTest, string runSynchronization, string connection, string connectionProxy, string connectionString, string scenarios, string scenarioRuleSet, int[] concurrencies, int runs,
-                                         int initialMinimumDelayInMilliseconds, int initialMaximumDelayInMilliseconds, int minimumDelayInMilliseconds, int maximumDelayInMilliseconds, bool shuffle, bool actionDistribution,
-            int maximumNumberOfUserActions, int monitorBeforeInMinutes, int monitorAfterInMinutes, bool useParallelExecutionOfRequests, int maximumPersistentConnections, int persistentConnectionsPerHostname) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format(@"INSERT INTO stresstests(vApusInstanceId, StressTest, RunSynchronization, Connection, ConnectionProxy, ConnectionString, Scenarios, ScenarioRuleSet, Concurrencies, Runs,
-InitialMinimumDelayInMilliseconds, InitialMaximumDelayInMilliseconds, MinimumDelayInMilliseconds, MaximumDelayInMilliseconds, Shuffle, ActionDistribution, MaximumNumberOfUserActions, MonitorBeforeInMinutes, MonitorAfterInMinutes,
-UseParallelExecutionOfRequests, MaximumPersistentConnections, PersistentConnectionsPerHostname)
-VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{10}', '{11}', '{12}', '{13}', '{14}', '{15}', '{16}', '{17}', '{18}', '{19}', '{20}', '{21}')",
-                                      _vApusInstanceId, stressTest, runSynchronization, connection, connectionProxy, connectionString.Encrypt(_passwordGUID, _salt), scenarios, scenarioRuleSet,
-                                      concurrencies.Combine(", "), runs, initialMinimumDelayInMilliseconds, initialMaximumDelayInMilliseconds, minimumDelayInMilliseconds, maximumDelayInMilliseconds, shuffle ? 1 : 0, actionDistribution ? 1 : 0,
-                                      maximumNumberOfUserActions, monitorBeforeInMinutes, monitorAfterInMinutes, useParallelExecutionOfRequests ? 1 : 0, maximumPersistentConnections, persistentConnectionsPerHostname)
-                        );
-                    _stressTestId = (int)_databaseActions.GetLastInsertId();
-                    return _stressTestId;
-                }
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Use this for single tests.
-        /// </summary>
-        /// <param name="monitor"></param>
-        /// <param name="connectionString">Will be encrypted.</param>
-        /// <param name="machineConfiguration"></param>
-        /// <param name="resultHeaders"></param>
-        /// <returns>
-        ///     The monitor configuration id in the database, set this in the proper monitor result cache.
-        ///     0 if BuildSchemaAndConnect was not called..
-        /// </returns>
-        public ulong SetMonitor(string monitor, string monitorSource, string connectionString, string machineConfiguration, string[] resultHeaders) {
-            return SetMonitor(_stressTestId, monitor, monitorSource, connectionString, machineConfiguration, resultHeaders);
-        }
-        /// <summary>
-        /// Use this for distributed tests.
-        /// </summary>
-        /// <param name="stressTestId"></param>
-        /// <param name="monitor"></param>
-        /// <param name="monitorSource"></param>
-        /// <param name="connectionString"></param>
-        /// <param name="machineConfiguration"></param>
-        /// <param name="resultHeaders"></param>
-        /// <returns>Id of the monitor. 0 if BuildSchemaAndConnect was not called.</returns>
-        public ulong SetMonitor(int stressTestId, string monitor, string monitorSource, string connectionString, string machineConfiguration, string[] resultHeaders) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    if (machineConfiguration == null) machineConfiguration = string.Empty;
-                    _databaseActions.ExecuteSQL(
-                        string.Format(
-                            "INSERT INTO monitors(StressTestId, Monitor, MonitorSource, ConnectionString, MachineConfiguration, ResultHeaders) VALUES('{0}', ?Monitor, ?MonitorSource, ?ConnectionString, ?MachineConfiguration, ?ResultHeaders)", stressTestId),
-                            CommandType.Text, new MySqlParameter("?Monitor", monitor), new MySqlParameter("?MonitorSource", monitorSource), new MySqlParameter("?ConnectionString", connectionString.Encrypt(_passwordGUID, _salt)),
-                                new MySqlParameter("?MachineConfiguration", machineConfiguration), new MySqlParameter("?ResultHeaders", resultHeaders.Combine("; ", string.Empty))
-                        );
-                    return _databaseActions.GetLastInsertId();
-                }
-                return 0;
-            }
-        }
-        #endregion
-
-        #region Set Results
-
-        #region Stress test results
-        /// <summary>
-        ///     Started at datetime now.
-        /// </summary>
-        /// <param name="stressTestResult"></param>
-        public void SetStressTestStarted(StressTestResult stressTestResult) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format(
-                            "INSERT INTO stresstestresults(StressTestId, StartedAt, StoppedAt, Status, StatusMessage) VALUES('{0}', '{1}', '{2}', 'OK', '')",
-                            _stressTestId, Parse(stressTestResult.StartedAt), Parse(DateTime.MinValue))
-                        );
-                    _stressTestResultId = _databaseActions.GetLastInsertId();
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Stopped at datetime now.
-        /// </summary>
-        /// <param name="stressTestResult"></param>
-        /// <param name="status"></param>
-        /// <param name="statusMessage"></param>
-        public void SetStressTestStopped(StressTestResult stressTestResult, string status = "OK", string statusMessage = "") {
-            lock (_lock) {
-                stressTestResult.StoppedAt = DateTime.Now;
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format(
-                            "UPDATE stresstestresults SET StoppedAt='{1}', Status='{2}', StatusMessage='{3}' WHERE Id='{0}'",
-                            _stressTestResultId, Parse(stressTestResult.StoppedAt), status, statusMessage)
-                        );
-
-                    DoAddMessagesToDatabase();
-                }
-            }
-        }
-        #endregion
-
-        #region Concurrency results
-
-        /// <summary>
-        ///     Started at datetime now.
-        /// </summary>
-        /// <param name="concurrencyResult"></param>
-        public void SetConcurrencyStarted(ConcurrencyResult concurrencyResult) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format(
-                            "INSERT INTO concurrencyresults(StressTestResultId, Concurrency, StartedAt, StoppedAt) VALUES('{0}', '{1}', '{2}', '{3}')",
-                            _stressTestResultId, concurrencyResult.Concurrency, Parse(concurrencyResult.StartedAt),
-                            Parse(DateTime.MinValue))
-                        );
-                    _concurrencyResultId = _databaseActions.GetLastInsertId();
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Stopped at datetime now.
-        /// </summary>
-        /// <param name="concurrencyResult"></param>
-        public void SetConcurrencyStopped(ConcurrencyResult concurrencyResult) {
-            lock (_lock) {
-                concurrencyResult.StoppedAt = DateTime.Now;
-                if (_databaseActions != null)
-                    _databaseActions.ExecuteSQL(
-                        string.Format("UPDATE concurrencyresults SET StoppedAt='{1}' WHERE Id='{0}'", _concurrencyResultId,
-                                      Parse(concurrencyResult.StoppedAt))
-                        );
-            }
-        }
-
-        #endregion
-
-        #region Run results
-
-        /// <summary>
-        /// </summary>
-        /// <param name="concurrencyResultId"></param>
-        /// <param name="reRunCount"></param>
-        /// <param name="startedAt"></param>
-        /// <param name="stoppedAt"></param>
-        /// <returns>Id of the run result.</returns>
-        public void SetRunStarted(RunResult runResult) {
-            lock (_lock) {
-                if (_databaseActions != null) {
-                    _databaseActions.ExecuteSQL(
-                        string.Format(
-                            "INSERT INTO runresults(ConcurrencyResultId, Run, TotalRequestCount, ReRunCount, StartedAt, StoppedAt) VALUES('{0}', '{1}', '0', '0', '{2}', '{3}')",
-                            _concurrencyResultId, runResult.Run, Parse(runResult.StartedAt), Parse(DateTime.MinValue))
-                        );
-                    _runResultId = _databaseActions.GetLastInsertId();
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Increase the rerun count value for the result using fx PrepareForRerun() before calling this fx.
-        /// </summary>
-        /// <param name="runResult"></param>
-        public void SetRerun(RunResult runResult) {
-            lock (_lock) {
-                if (_databaseActions != null)
-                    _databaseActions.ExecuteSQL(
-                        string.Format("UPDATE runresults SET ReRunCount='{1}' WHERE Id='{0}'", _runResultId,
-                                      runResult.RerunCount)
-                        );
-            }
-        }
-
-        /// <summary>
-        ///     All the request results are save to the database doing this, only do this for the curent run.
-        /// </summary>
-        /// <param name="runResult"></param>
-        public void SetRunStopped(RunResult runResult) {
-            lock (_lock) {
-                runResult.StoppedAt = DateTime.Now;
-                if (_databaseActions != null) {
-                    ulong totalRequestCount = 0;
-
-                    var sb = new StringBuilder();
-                    foreach (VirtualUserResult virtualUserResult in runResult.VirtualUserResults) {
-                        if (virtualUserResult != null) {
-                            totalRequestCount += (ulong)virtualUserResult.RequestResults.LongLength;
-
-                            var rowsToInsert = new List<string>(); //Insert multiple values at once.
-                            foreach (var requestResult in virtualUserResult.RequestResults)
-                                if (requestResult != null && requestResult.VirtualUser != null) {
-                                    sb.Append("('");
-                                    sb.Append(_runResultId);
-                                    sb.Append("', '");
-                                    sb.Append(virtualUserResult.VirtualUser);
-                                    sb.Append("', '");
-                                    sb.Append(MySQLEscapeString(requestResult.UserAction));
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.RequestIndex);
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.SameAsRequestIndex);
-                                    sb.Append("', '");
-                                    sb.Append(MySQLEscapeString(requestResult.Request));
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.InParallelWithPrevious ? 1 : 0);
-                                    sb.Append("', '");
-                                    sb.Append(Parse(requestResult.SentAt));
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.TimeToLastByteInTicks);
-                                    sb.Append("', '");
-                                    sb.Append(MySQLEscapeString(requestResult.Meta));
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.DelayInMilliseconds);
-                                    sb.Append("', '");
-                                    sb.Append(MySQLEscapeString(requestResult.Error));
-                                    sb.Append("', '");
-                                    sb.Append(requestResult.Rerun);
-                                    sb.Append("')");
-                                    rowsToInsert.Add(sb.ToString());
-                                    sb.Clear();
-
-                                    if (rowsToInsert.Count == 100) {
-                                        _databaseActions.ExecuteSQL(string.Format("INSERT INTO requestresults(RunResultId, VirtualUser, UserAction, RequestIndex, SameAsRequestIndex, Request, InParallelWithPrevious, SentAt, TimeToLastByteInTicks, Meta, DelayInMilliseconds, Error, Rerun) VALUES {0};",
-                                            rowsToInsert.Combine(", ")));
-                                        rowsToInsert.Clear();
-                                    }
-                                }
-
-                            if (rowsToInsert.Count != 0)
-                                _databaseActions.ExecuteSQL(string.Format("INSERT INTO requestresults(RunResultId, VirtualUser, UserAction, RequestIndex, SameAsRequestIndex, Request, InParallelWithPrevious, SentAt, TimeToLastByteInTicks, Meta, DelayInMilliseconds, Error, Rerun) VALUES {0};",
-                                rowsToInsert.Combine(", ")));
-                        }
-                    }
-                    _databaseActions.ExecuteSQL(string.Format("UPDATE runresults SET TotalRequestCount='{1}', StoppedAt='{2}' WHERE Id='{0}'", _runResultId, totalRequestCount, Parse(runResult.StoppedAt)));
-
-                    DoAddMessagesToDatabase();
-                }
-            }
-        }
-        #endregion
-
-        #region Monitor results
-
-        /// <summary>
-        ///     Do this at the end of the test.
-        /// </summary>
-        /// <param name="monitorResultCache">Should have a filled in monitor configuration id.</param>
-        public void SetMonitorResults(MonitorResult monitorResultCache) {
-            lock (_lock) {
-                //Store monitor values with a ',' for decimal seperator.
-                CultureInfo prevCulture = Thread.CurrentThread.CurrentCulture;
-                Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("nl-BE");
-                if (_databaseActions != null && monitorResultCache.Rows.Count != 0) {
-                    ulong monitorConfigurationId = monitorResultCache.MonitorConfigurationId;
-                    var rowsToInsert = new List<string>(); //Insert multiple values at once.
-                    foreach (var row in monitorResultCache.Rows) {
-                        var value = new List<string>();
-                        for (int i = 1; i < row.Length; i++) {
-                            object cell = row[i];
-                            if (cell is double)
-                                value.Add(StringUtil.DoubleToLongString((double)cell));
-                            else
-                                value.Add(cell.ToString());
-                        }
-
-                        var sb = new StringBuilder("('");
-                        sb.Append(monitorConfigurationId);
-                        sb.Append("', '");
-                        sb.Append(Parse((DateTime)row[0]));
-                        sb.Append("', '");
-                        sb.Append(MySQLEscapeString(MySQLEscapeString(value.Combine("; "))));
-                        sb.Append("')");
-                        rowsToInsert.Add(sb.ToString());
-                    }
-                    _databaseActions.ExecuteSQL(string.Format("INSERT INTO monitorresults(MonitorId, TimeStamp, Value) VALUES {0};", rowsToInsert.Combine(", ")));
-                }
-                Thread.CurrentThread.CurrentCulture = prevCulture;
-
-                DoAddMessagesToDatabase();
-            }
-        }
-
-        #endregion
-
-        #endregion
-
-        /// <summary>
-        /// Application log entries.
-        /// Kept in memory and added every run and when the test ends.
-        /// </summary>
-        /// <param name="level"></param>
-        /// <param name="message"></param>
-        public void AddMessageInMemory(int level, string message) {
-            if (GetvApusInstanceId() > 0 && _databaseActions != null)
-                lock (_lock)
-                    _messages.Add(string.Format("('{0}', '{1}', '{2}', '{3}')", GetvApusInstanceId(), Parse(DateTime.Now), level, MySQLEscapeString(message.Replace("\r", "_").Replace("\n", "_"))));
-        }
-        /// <summary>
-        /// Add the messages stored in memory to the database. Do this only for distributed tests in the core.
-        /// </summary>
-        public void DoAddMessagesToDatabase() {
-            lock (_lock) {
-                string[] messages = _messages.ToArray();
-                if (messages.Length != 0) {
-                    if (GetvApusInstanceId() > 0 && _databaseActions != null)
-                        _databaseActions.ExecuteSQL(string.Format("INSERT INTO messages(vApusInstanceId, Timestamp, Level, Message) VALUES {0};", messages.Combine(", ")));
-                    _messages = new List<string>();
-                }
-                messages = null;
-            }
-        }
-
-        /// <summary>
-        /// Tries to retrieve the instance id using the hostname and the local port. Should only be used in the add messages fxs.
-        /// </summary>
-        /// <returns></returns>
-        private int GetvApusInstanceId() {
-            if (_databaseActions != null && !string.IsNullOrEmpty(_databaseName)) {
-                lock (_lock) {
-                    var dt = ReaderAndCombiner.GetvApusInstances(_databaseActions);
-
-                    //Dns.GetHostName() does not always work.
-                    string hostName = Dns.GetHostEntry("127.0.0.1").HostName.Trim().Split('.')[0].ToLower();
-                    foreach (DataRow row in dt.Rows)
-                        if (((int)row["Port"]) == NamedObjectRegistrar.Get<int>("Port") && (row["HostName"] as string).ToLower() == hostName) {
-                            _vApusInstanceId = (int)row["Id"];
-                            break;
-                        }
-
-                }
-            } else {
-                _vApusInstanceId = -1;
-            }
-            return _vApusInstanceId;
         }
 
         //For getting stuff fom the database ReaderAndCombiner is used: You can execute a many-to-one distributed test (a tests workload divided over multiple slaves);
@@ -573,7 +150,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                             string value = (maximumPersistentConnections == 0 ? "∞" : maximumPersistentConnections.ToString()) + " maximum persistent connections, ";
                             value += (persistentConnectionsPerHostname == 0 ? "∞" : persistentConnectionsPerHostname.ToString()) + " persistent connections per hostname";
                             l.Add(new KeyValuePair<string, string>("Parallel connections", value));
-                        } else {
+                        }
+                        else {
                             l.Add(new KeyValuePair<string, string>("Parallel connections", "No"));
                         }
                     }
@@ -960,7 +538,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             foreach (DataRow row in overview.Rows)
                 if (heaviestRow == null) {
                     heaviestRow = row;
-                } else if ((int)heaviestRow["Concurrency"] < (int)row["Concurrency"]) {
+                }
+                else if ((int)heaviestRow["Concurrency"] < (int)row["Concurrency"]) {
                     bool validRow = true;
 
                     //Handle cancelled tests.
@@ -1448,7 +1027,7 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             if (monitorId == -1)
                 monitors = ReaderAndCombiner.GetMonitors(cancellationToken, _databaseActions, null, stressTestIds, "Id", "StressTestId", "Monitor", "ResultHeaders");
             else
-                monitors = ReaderAndCombiner.GetMonitor(cancellationToken, _databaseActions, monitorId, "Id", "StressTestId", "Monitor", "ResultHeaders");
+                monitors = ReaderAndCombiner.GetMonitor(_databaseActions, monitorId, "Id", "StressTestId", "Monitor", "ResultHeaders");
 
             if (monitors == null || monitors.Rows.Count == 0) return CreateEmptyDataTable("AverageMonitorResults", "Stress test", "Result headers");
 
@@ -1471,7 +1050,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                 string rhs = monitorRow[3] as string;
                 if (resultHeaderStrings.Contains(rhs)) {
                     monitorColumnOffsets[tempMonitorId] = prevResultHeadersCount;
-                } else {
+                }
+                else {
                     prevResultHeadersCount = resultHeaders.Count;
                     resultHeaderStrings.Add(rhs);
                     var rh = rhs.Split(new string[] { "; " }, StringSplitOptions.None);
@@ -1688,7 +1268,6 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                 foreach (var kvp in monitorValues) {
                     if (cancellationToken.IsCancellationRequested) return null;
 
-                    var timeStamp = kvp.Key;
                     var doubles = kvp.Value;
 
                     // The averages length must be the same as the doubles length.
@@ -1723,7 +1302,7 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                     DataTable monitorResults = GetResultSet("MonitorResults" + monitorId, -1);
                     if (monitorResults == null) {
                         //Get the monitors + values
-                        DataTable monitors = ReaderAndCombiner.GetMonitor(cancellationToken, _databaseActions, monitorId, "Id", "StressTestId", "Monitor", "ResultHeaders");
+                        DataTable monitors = ReaderAndCombiner.GetMonitor(_databaseActions, monitorId, "Id", "StressTestId", "Monitor", "ResultHeaders");
                         if (monitors == null || monitors.Rows.Count == 0) return null;
 
                         DataRow monitorRow = monitors.Rows[0];
@@ -1758,7 +1337,6 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                         CultureInfo prevCulture = Thread.CurrentThread.CurrentCulture;
                         Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("nl-BE");
 
-                        var monitorValues = new Dictionary<DateTime, double[]>(mrs.Rows.Count);
                         foreach (DataRow monitorResultsRow in mrs.Rows) {
                             if (cancellationToken.IsCancellationRequested) return null;
 
@@ -1806,7 +1384,7 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                             cacheEntry.ReturnValue = cacheEntryDt;
                             return cacheEntryDt;
                         }
-                        DataTable monitor = ReaderAndCombiner.GetMonitor(cancellationToken, _databaseActions, monitorId, "StressTestId");
+                        DataTable monitor = ReaderAndCombiner.GetMonitor(_databaseActions, monitorId, "StressTestId");
                         if (monitor == null || monitor.Rows.Count == 0)
                             return null;
                         DataRow monitorRow = monitor.Rows[0];
@@ -1939,7 +1517,6 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                     DataTable stressTests = ReaderAndCombiner.GetStressTests(cancellationToken, _databaseActions, "Id");
                     if (stressTests == null || stressTests.Rows.Count == 0) return null;
 
-                    int stressTestsRowCount = stressTests.Rows.Count;
                     var tpsPerWatt = new List<List<double>>();
                     var secondaryCounterValues = new List<double>();
 
@@ -1972,7 +1549,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                         double geomeanTpPerWatt;
                         if (entry.Count == 1) { //Branching goes a bit faster I think, result would be the same regardlesly.
                             geomeanTpPerWatt = entry[0];
-                        } else {
+                        }
+                        else {
                             geomeanTpPerWatt = 1;
                             foreach (double tpPerWatt in entry) geomeanTpPerWatt *= tpPerWatt;
                             geomeanTpPerWatt = Math.Pow(geomeanTpPerWatt, (1d / entry.Count));
@@ -2007,11 +1585,10 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             var wattCounterValues = GetMonitorCounterValues(cancellationToken, powerMonitorName, wattCounter, out powerMonitorStressTestId);
             if (wattCounterValues == null) return null;
 
-            int powerMonitorBefore = 0, powerMonitorAfter = 0;
+            int powerMonitorBefore = 0;
             foreach (DataRow row in stressTests.Rows)
                 if ((int)row.ItemArray[0] == powerMonitorStressTestId) {
                     powerMonitorBefore = (int)row.ItemArray[1];
-                    powerMonitorAfter = (int)row.ItemArray[2];
                     break;
                 }
 
@@ -2068,22 +1645,22 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             DateTime firstSentAt = DateTime.MaxValue;
             DateTime lastSentAt = DateTime.MinValue;
 
-            var requests = new List<Request>();
+            var requestCounters = new List<RequestCounters>();
             foreach (DataRow rerRow in requestResults.Rows) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
                 DateTime sentAt = (DateTime)rerRow["SentAt"];
                 if (sentAt < firstSentAt) firstSentAt = sentAt;
                 if (sentAt > lastSentAt) lastSentAt = sentAt;
-                requests.Add(new Request() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
+                requestCounters.Add(new RequestCounters() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
             }
 
             //Determine all the minutes.The key is the upper border.
-            var minutes = new Dictionary<DateTime, List<Request>>();
+            var minutes = new Dictionary<DateTime, List<RequestCounters>>();
             DateTime nextMinute = firstSentAt;
             while (nextMinute < lastSentAt) {
                 nextMinute = nextMinute.AddMinutes(1);
-                minutes.Add(nextMinute, new List<Request>());
+                minutes.Add(nextMinute, new List<RequestCounters>());
             }
 
             //---
@@ -2091,14 +1668,14 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             //---
 
             //Put requests in the right "minute".
-            foreach (var request in requests) {
+            foreach (var rc in requestCounters) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
                 foreach (DateTime key in minutes.Keys) {
                     if (cancellationToken.IsCancellationRequested) return null;
 
-                    if (request.SentAt < key) {
-                        minutes[key].Add(request);
+                    if (rc.SentAt < key) {
+                        minutes[key].Add(rc);
                         break;
                     }
                 }
@@ -2106,7 +1683,7 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
 
             TimeSpan totalTimeToLastByte, totalDelay;
             double div;
-            foreach (List<Request> currentMinute in minutes.Values) {
+            foreach (List<RequestCounters> currentMinute in minutes.Values) {
                 double minuteTp = 0d;
                 if (currentMinute.Count != 0) {
                     totalTimeToLastByte = new TimeSpan();
@@ -2156,7 +1733,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                 double tpm = throughputPerMinute[minute];
                 if (tpm == 0d) {
                     row[1] = 0d;
-                } else {
+                }
+                else {
                     double wpm = wattPerMinute[newMinute];
                     row[1] = wpm == 0d ? 0d : throughputPerMinute[minute] / wpm;
                 }
@@ -2293,7 +1871,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                         double geomeanTpPerWatt;
                         if (entry.Length == 1) { //Branching goes a bit faster I think, result would be the same regardlesly.
                             geomeanTpPerWatt = entry[0];
-                        } else {
+                        }
+                        else {
                             geomeanTpPerWatt = 1;
                             foreach (double tpPerWatt in entry) geomeanTpPerWatt *= tpPerWatt;
                             geomeanTpPerWatt = Math.Pow(geomeanTpPerWatt, (1d / entry.Length));
@@ -2344,14 +1923,14 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             DateTime firstSentAt = DateTime.MaxValue;
             DateTime lastSentAt = DateTime.MinValue;
 
-            var requests = new List<Request>();
+            var requestCounters = new List<RequestCounters>();
             foreach (DataRow rerRow in requestResults.Rows) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
                 DateTime sentAt = (DateTime)rerRow["SentAt"];
                 if (sentAt < firstSentAt) firstSentAt = sentAt;
                 if (sentAt > lastSentAt) lastSentAt = sentAt;
-                requests.Add(new Request() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
+                requestCounters.Add(new RequestCounters() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
             }
 
             //Get the Throughput
@@ -2362,15 +1941,15 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             TimeSpan totalTimeToLastByte = new TimeSpan();
             TimeSpan totalDelay = new TimeSpan();
 
-            foreach (var request in requests) {
+            foreach (var rc in requestCounters) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                totalTimeToLastByte = totalTimeToLastByte.Add(new TimeSpan(request.TimeToLastByteInTicks));
-                totalDelay = totalDelay.Add(new TimeSpan(request.DelayInMilliseconds * TimeSpan.TicksPerMillisecond));
+                totalTimeToLastByte = totalTimeToLastByte.Add(new TimeSpan(rc.TimeToLastByteInTicks));
+                totalDelay = totalDelay.Add(new TimeSpan(rc.DelayInMilliseconds * TimeSpan.TicksPerMillisecond));
             }
 
             double div = ((double)(totalTimeToLastByte.Ticks + totalDelay.Ticks) / TimeSpan.TicksPerSecond);
-            throughput = ((double)requests.Count) / div;
+            throughput = ((double)requestCounters.Count) / div;
 
             //Now we need to get the watt and performance counter for each minute of the test. Monitor before and after must be taken into account.
 
@@ -2516,7 +2095,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                     DataTable messages = null; //yyyy-MM-dd HH:mm:ss.ffffff
                     if (vApusInstanceIds.Count == 1) {
                         messages = _databaseActions.GetDataTable(string.Format("SELECT DATE_FORMAT(Timestamp, '%Y-%m-%d %H:%i:%S') as Timestamp, Level, Message FROM messages where vApusInstanceId IN({0});", vApusInstanceIds.Combine(",")));
-                    } else {
+                    }
+                    else {
                         messages = _databaseActions.GetDataTable(string.Format("SELECT COALESCE(s.StressTest, 'Distributed test') as 'Test', DATE_FORMAT(m.Timestamp, '%Y-%m-%d %H:%i:%S') as Timestamp, m.Level, m.Message FROM messages as m left join stresstests as s on m.vApusInstanceId = s.vApusInstanceId where m.vApusInstanceId IN({0});", vApusInstanceIds.Combine(",")));
                     }
 
@@ -2546,7 +2126,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                     _databaseActions = new DatabaseActions() { ConnectionString = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};table cache = true;", host, port, databaseName, user, password) };
                     if (!_databaseActions.CanConnect()) throw new Exception("A connection to the results server could not be made!");
                     _databaseName = databaseName;
-                } catch {
+                }
+                catch {
                     KillConnection();
                     throw;
                 }
@@ -2564,7 +2145,8 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
                     _databaseActions = databaseActions;
                     if (!_databaseActions.CanConnect()) throw new Exception("A connection to the results server could not be made!");
                     _databaseName = databaseName;
-                } catch {
+                }
+                catch {
                     KillConnection();
                     throw;
                 }
@@ -2641,10 +2223,11 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
         public bool DeleteResults(string databaseName) {
             lock (_lock)
                 try {
-                    Schema.Drop(databaseName, _databaseActions);
+                    _databaseActions.ExecuteSQL("DROP SCHEMA " + databaseName);
                     _databaseName = null;
                     return true;
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Loggers.Log(Level.Error, "Failed deleting the results database.", ex);
                 }
             return false;
@@ -2662,19 +2245,6 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             for (int i = 0; i != columnNames.Length; i++) dataTable.Columns.Add(columnNames[i], columnDataTypes[i]);
             return dataTable;
         }
-
-        /// <summary>
-        /// Parse a date to a valid string for in a MySQL db.
-        /// </summary>
-        /// <param name="dateTime"></param>
-        /// <returns></returns>
-        private string Parse(DateTime dateTime) { return dateTime.ToString("yyyy-MM-dd HH:mm:ss.ffffff"); }
-        /// <summary>
-        ///Mimics PHP's mysql_real_escape_string();
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        private static string MySQLEscapeString(string s) { return System.Text.RegularExpressions.Regex.Replace(s, @"[\r\n\x00\x1a\\'""]", @"\$0"); }
         #endregion
 
         internal class UserActionComparer : IComparer<string> {
@@ -2756,7 +2326,7 @@ VALUES('{0}', '{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}', '{1
             }
         }
 
-        private struct Request {
+        private struct RequestCounters {
             public DateTime SentAt;
             public long TimeToLastByteInTicks;
             public int DelayInMilliseconds;

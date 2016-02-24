@@ -198,7 +198,7 @@ namespace vApus.Results {
                             DataTable dt = Prep(resultsHelper.GetMonitorResultsByMonitorId(token, monitorId));
                             dt.Columns.Remove("Monitor");
 
-                            string firstWorksheet = MakeWorksheet(doc, dt, (doc.GetSheetNames().Count - 2) + " " + monitorIdsAndNames[monitorId], false, true);
+                            MakeWorksheet(doc, dt, (doc.GetSheetNames().Count - 2) + " " + monitorIdsAndNames[monitorId], false, true);
                         }
                 }
         }

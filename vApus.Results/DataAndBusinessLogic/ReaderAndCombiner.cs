@@ -493,7 +493,7 @@ namespace vApus.Results {
             return combined;
         }
 
-        public static DataTable GetMonitor(CancellationToken cancellationToken, DatabaseActions databaseActions, int monitorId, params string[] selectColumns) {
+        public static DataTable GetMonitor(DatabaseActions databaseActions, int monitorId, params string[] selectColumns) {
             return databaseActions.GetDataTable(string.Format("Select {0} From monitors Where Id={1};", GetValidSelect(selectColumns), monitorId));
         }
 
@@ -982,14 +982,7 @@ namespace vApus.Results {
             }
             return where;
         }
-
-        private static DataTable CreateEmptyDataTable(string name, string[] columnNames) {
-            var objectType = typeof(object);
-            var dataTable = new DataTable(name);
-            foreach (string columnName in columnNames) dataTable.Columns.Add(columnName, objectType);
-            return dataTable;
-        }
-
+        
         private static List<List<object[]>> Pivot(CancellationToken cancellationToken, List<DataTable> dt) {
             int count = dt.Count;
 

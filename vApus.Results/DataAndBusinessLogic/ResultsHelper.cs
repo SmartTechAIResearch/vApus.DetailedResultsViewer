@@ -823,10 +823,10 @@ namespace vApus.Results {
                                 int runResultId = (int)rrRow.ItemArray[0];
 
                                 //We don't want duplicates
-                                DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(SameAsRequestIndex)=0", runResultId, "UserAction", "Request");
+                                DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(SameAsRequestIndex)=0", runResultId, "UserAction", "RequestIndex", "Request");
                                 if (requestResults == null || requestResults.Rows.Count == 0) continue;
 
-                                requestResults = DistinctBy(requestResults, "Request");
+                                requestResults = DistinctBy(requestResults, "RequestIndex");
 
                                 var userActions = new Dictionary<string, List<string>>();
                                 foreach (DataRow rerRow in requestResults.Rows) {

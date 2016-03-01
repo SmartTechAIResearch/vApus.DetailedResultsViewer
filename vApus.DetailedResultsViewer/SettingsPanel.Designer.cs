@@ -25,8 +25,9 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsPanel));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             this.lblConnectToMySQL = new System.Windows.Forms.LinkLabel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.lblResults = new System.Windows.Forms.Label();
@@ -52,17 +53,6 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // filterResults
-            // 
-            this.filterResults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Bottom)));
-            this.filterResults.BackColor = System.Drawing.Color.White;
-            this.filterResults.Location = new System.Drawing.Point(9, 54);
-            this.filterResults.Name = "filterResults";
-            this.filterResults.Size = new System.Drawing.Size(520, 100);
-            this.filterResults.TabIndex = 1;
-            this.filterResults.FilterChanged += new System.EventHandler(this.filterDatabases_FilterChanged);
             // 
             // lblConnectToMySQL
             // 
@@ -93,9 +83,9 @@
             this.lblResults.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblResults.Location = new System.Drawing.Point(29, 13);
             this.lblResults.Name = "lblResults";
-            this.lblResults.Size = new System.Drawing.Size(160, 16);
+            this.lblResults.Size = new System.Drawing.Size(231, 16);
             this.lblResults.TabIndex = 9;
-            this.lblResults.Text = "Select a results database";
+            this.lblResults.Text = "Select one or more results databases";
             // 
             // picDatabases
             // 
@@ -111,8 +101,8 @@
             // 
             this.dgvDatabases.AllowUserToAddRows = false;
             this.dgvDatabases.AllowUserToDeleteRows = false;
-            dataGridViewCellStyle9.BackColor = System.Drawing.Color.White;
-            this.dgvDatabases.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.White;
+            this.dgvDatabases.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvDatabases.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -120,7 +110,15 @@
             this.dgvDatabases.BackgroundColor = System.Drawing.Color.White;
             this.dgvDatabases.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dgvDatabases.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
-            this.dgvDatabases.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            this.dgvDatabases.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = System.Drawing.Color.White;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvDatabases.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle5;
             this.dgvDatabases.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvDatabases.EnableHeadersVisualStyles = false;
             this.dgvDatabases.Font = new System.Drawing.Font("Consolas", 9.75F);
@@ -129,8 +127,8 @@
             this.dgvDatabases.ReadOnly = true;
             this.dgvDatabases.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
             this.dgvDatabases.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            dataGridViewCellStyle10.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
-            this.dgvDatabases.RowsDefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
+            this.dgvDatabases.RowsDefaultCellStyle = dataGridViewCellStyle6;
             this.dgvDatabases.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dgvDatabases.Size = new System.Drawing.Size(502, 195);
             this.dgvDatabases.TabIndex = 2;
@@ -156,9 +154,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlBorderStressTest.BackColor = System.Drawing.Color.Silver;
             this.pnlBorderStressTest.Controls.Add(this.cboStressTest);
-            this.pnlBorderStressTest.Location = new System.Drawing.Point(172, 290);
+            this.pnlBorderStressTest.Location = new System.Drawing.Point(80, 290);
             this.pnlBorderStressTest.Name = "pnlBorderStressTest";
-            this.pnlBorderStressTest.Size = new System.Drawing.Size(353, 23);
+            this.pnlBorderStressTest.Size = new System.Drawing.Size(445, 23);
             this.pnlBorderStressTest.TabIndex = 20;
             // 
             // cboStressTest
@@ -173,7 +171,7 @@
             this.cboStressTest.Location = new System.Drawing.Point(1, 1);
             this.cboStressTest.Margin = new System.Windows.Forms.Padding(3, 4, 3, 3);
             this.cboStressTest.Name = "cboStressTest";
-            this.cboStressTest.Size = new System.Drawing.Size(351, 21);
+            this.cboStressTest.Size = new System.Drawing.Size(443, 21);
             this.cboStressTest.TabIndex = 0;
             this.cboStressTest.SelectedIndexChanged += new System.EventHandler(this.cboStressTest_SelectedIndexChanged);
             // 
@@ -184,9 +182,9 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(33, 293);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(121, 16);
+            this.label1.Size = new System.Drawing.Size(41, 16);
             this.label1.TabIndex = 14;
-            this.label1.Text = "Select a stress test";
+            this.label1.Text = "Show";
             // 
             // pictureBox2
             // 
@@ -201,14 +199,14 @@
             // 
             // btnDeleteSelectedDbs
             // 
-            this.btnDeleteSelectedDbs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnDeleteSelectedDbs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnDeleteSelectedDbs.AutoSize = true;
             this.btnDeleteSelectedDbs.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnDeleteSelectedDbs.BackColor = System.Drawing.SystemColors.Control;
             this.btnDeleteSelectedDbs.Enabled = false;
             this.btnDeleteSelectedDbs.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeleteSelectedDbs.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnDeleteSelectedDbs.Location = new System.Drawing.Point(417, 240);
+            this.btnDeleteSelectedDbs.Location = new System.Drawing.Point(152, 240);
             this.btnDeleteSelectedDbs.MaximumSize = new System.Drawing.Size(9999, 24);
             this.btnDeleteSelectedDbs.MinimumSize = new System.Drawing.Size(0, 24);
             this.btnDeleteSelectedDbs.Name = "btnDeleteSelectedDbs";
@@ -262,11 +260,25 @@
             this.btnOverviewExportToExcel.MaximumSize = new System.Drawing.Size(9999, 24);
             this.btnOverviewExportToExcel.MinimumSize = new System.Drawing.Size(0, 24);
             this.btnOverviewExportToExcel.Name = "btnOverviewExportToExcel";
-            this.btnOverviewExportToExcel.Size = new System.Drawing.Size(172, 24);
+            this.btnOverviewExportToExcel.Size = new System.Drawing.Size(122, 24);
             this.btnOverviewExportToExcel.TabIndex = 15;
-            this.btnOverviewExportToExcel.Text = "Export overview to Excel...";
+            this.btnOverviewExportToExcel.Text = "Export overview...";
+            this.toolTip.SetToolTip(this.btnOverviewExportToExcel, "Export an overview / comparisson to Excel of test and monitor results for the sel" +
+        "ected results database(s).");
             this.btnOverviewExportToExcel.UseVisualStyleBackColor = false;
             this.btnOverviewExportToExcel.Click += new System.EventHandler(this.btnOverviewExportToExcel_Click);
+            // 
+            // filterResults
+            // 
+            this.filterResults.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.filterResults.BackColor = System.Drawing.Color.White;
+            this.filterResults.Location = new System.Drawing.Point(9, 54);
+            this.filterResults.Name = "filterResults";
+            this.filterResults.Size = new System.Drawing.Size(520, 100);
+            this.filterResults.TabIndex = 1;
+            this.filterResults.FilterChanged += new System.EventHandler(this.filterDatabases_FilterChanged);
             // 
             // SettingsPanel
             // 
@@ -278,7 +290,7 @@
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "SettingsPanel";
-            this.Text = "Select a results database";
+            this.Text = "Results databases";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picDatabases)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvDatabases)).EndInit();

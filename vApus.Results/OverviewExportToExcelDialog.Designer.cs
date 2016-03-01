@@ -34,14 +34,13 @@
             // 
             this.lblDescription.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblDescription.AutoSize = true;
             this.lblDescription.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblDescription.Location = new System.Drawing.Point(12, 9);
             this.lblDescription.Name = "lblDescription";
-            this.lblDescription.Size = new System.Drawing.Size(491, 16);
+            this.lblDescription.Size = new System.Drawing.Size(510, 47);
             this.lblDescription.TabIndex = 9;
-            this.lblDescription.Text = "Export test and monitor results per concurrency for the selected results database" +
-    "s.";
+            this.lblDescription.Text = "Export an overview / comparisson to Excel of test and monitor results for the sel" +
+    "ected results database(s).";
             // 
             // btnExportToExcel
             // 
@@ -116,7 +115,7 @@
             this.ShowInTaskbar = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Overview export to excel";
+            this.Text = "Overview export to Excel";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OverviewExportToExcelDialog_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();

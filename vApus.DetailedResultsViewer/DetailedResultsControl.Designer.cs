@@ -116,7 +116,7 @@ namespace vApus.StressTest {
             this.splitContainer.Panel2.Controls.Add(this.splitQueryData);
             this.splitContainer.Panel2.Controls.Add(this.flpDetailedMetrics);
             this.splitContainer.Panel2.Controls.Add(this.label1);
-            this.splitContainer.Size = new System.Drawing.Size(897, 639);
+            this.splitContainer.Size = new System.Drawing.Size(881, 600);
             this.splitContainer.SplitterDistance = 75;
             this.splitContainer.TabIndex = 0;
             // 
@@ -125,7 +125,7 @@ namespace vApus.StressTest {
             this.pnlBorderCollapse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlBorderCollapse.BackColor = System.Drawing.Color.Silver;
             this.pnlBorderCollapse.Controls.Add(this.btnCollapseExpand);
-            this.pnlBorderCollapse.Location = new System.Drawing.Point(872, 6);
+            this.pnlBorderCollapse.Location = new System.Drawing.Point(856, 6);
             this.pnlBorderCollapse.Name = "pnlBorderCollapse";
             this.pnlBorderCollapse.Size = new System.Drawing.Size(22, 23);
             this.pnlBorderCollapse.TabIndex = 1;
@@ -161,7 +161,7 @@ namespace vApus.StressTest {
             this.flpConfiguration.Controls.Add(this.lbtnMonitors);
             this.flpConfiguration.Location = new System.Drawing.Point(0, 0);
             this.flpConfiguration.Name = "flpConfiguration";
-            this.flpConfiguration.Size = new System.Drawing.Size(866, 75);
+            this.flpConfiguration.Size = new System.Drawing.Size(850, 75);
             this.flpConfiguration.TabIndex = 0;
             // 
             // label3
@@ -315,7 +315,7 @@ namespace vApus.StressTest {
             this.splitQueryData.Panel2.BackColor = System.Drawing.Color.White;
             this.splitQueryData.Panel2.Controls.Add(this.chkShowCellView);
             this.splitQueryData.Panel2.Controls.Add(this.splitData);
-            this.splitQueryData.Size = new System.Drawing.Size(897, 460);
+            this.splitQueryData.Size = new System.Drawing.Size(881, 421);
             this.splitQueryData.SplitterDistance = 100;
             this.splitQueryData.TabIndex = 2;
             // 
@@ -346,7 +346,7 @@ namespace vApus.StressTest {
             this.btnExecute.Size = new System.Drawing.Size(24, 98);
             this.btnExecute.TabIndex = 1;
             this.btnExecute.TabStop = false;
-            this.toolTip.SetToolTip(this.btnExecute, "Execute the script.");
+            this.toolTip.SetToolTip(this.btnExecute, "Execute the script.\t Ctrl+Enter");
             this.btnExecute.UseVisualStyleBackColor = false;
             this.btnExecute.Click += new System.EventHandler(this.btnExecute_Click);
             // 
@@ -372,6 +372,7 @@ namespace vApus.StressTest {
             this.codeTextBox.CharWidth = 8;
             this.codeTextBox.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.codeTextBox.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
+            this.codeTextBox.Font = new System.Drawing.Font("Courier New", 9.75F);
             this.codeTextBox.IsReplaceMode = false;
             this.codeTextBox.Location = new System.Drawing.Point(30, 0);
             this.codeTextBox.Name = "codeTextBox";
@@ -379,17 +380,18 @@ namespace vApus.StressTest {
             this.codeTextBox.PreferredLineWidth = 65536;
             this.codeTextBox.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(50)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
             this.codeTextBox.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("codeTextBox.ServiceColors")));
-            this.codeTextBox.Size = new System.Drawing.Size(864, 100);
+            this.codeTextBox.Size = new System.Drawing.Size(848, 100);
             this.codeTextBox.TabIndex = 0;
             this.codeTextBox.WordWrap = true;
             this.codeTextBox.WordWrapMode = FastColoredTextBoxNS.WordWrapMode.CharWrapControlWidth;
             this.codeTextBox.Zoom = 100;
+            this.codeTextBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.codeTextBox_KeyPress);
             // 
             // chkShowCellView
             // 
             this.chkShowCellView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkShowCellView.AutoSize = true;
-            this.chkShowCellView.Location = new System.Drawing.Point(8, 329);
+            this.chkShowCellView.Location = new System.Drawing.Point(8, 290);
             this.chkShowCellView.Name = "chkShowCellView";
             this.chkShowCellView.Size = new System.Drawing.Size(97, 17);
             this.chkShowCellView.TabIndex = 35;
@@ -417,7 +419,7 @@ namespace vApus.StressTest {
             // 
             this.splitData.Panel2.Controls.Add(this.fctxtCellView);
             this.splitData.Panel2Collapsed = true;
-            this.splitData.Size = new System.Drawing.Size(899, 325);
+            this.splitData.Size = new System.Drawing.Size(883, 286);
             this.splitData.SplitterDistance = 160;
             this.splitData.TabIndex = 34;
             // 
@@ -459,7 +461,7 @@ namespace vApus.StressTest {
             this.dgvDetailedResults.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
             this.dgvDetailedResults.RowsDefaultCellStyle = dataGridViewCellStyle4;
-            this.dgvDetailedResults.Size = new System.Drawing.Size(899, 325);
+            this.dgvDetailedResults.Size = new System.Drawing.Size(883, 286);
             this.dgvDetailedResults.TabIndex = 0;
             this.dgvDetailedResults.VirtualMode = true;
             this.dgvDetailedResults.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvDetailedResults_CellEnter);
@@ -484,6 +486,7 @@ namespace vApus.StressTest {
             this.fctxtCellView.Cursor = System.Windows.Forms.Cursors.IBeam;
             this.fctxtCellView.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
             this.fctxtCellView.Enabled = false;
+            this.fctxtCellView.Font = new System.Drawing.Font("Courier New", 9.75F);
             this.fctxtCellView.IsReplaceMode = false;
             this.fctxtCellView.Location = new System.Drawing.Point(0, 0);
             this.fctxtCellView.Name = "fctxtCellView";
@@ -514,7 +517,7 @@ namespace vApus.StressTest {
             this.flpDetailedMetrics.Controls.Add(this.lblLoading);
             this.flpDetailedMetrics.Location = new System.Drawing.Point(-1, 40);
             this.flpDetailedMetrics.Name = "flpDetailedMetrics";
-            this.flpDetailedMetrics.Size = new System.Drawing.Size(899, 60);
+            this.flpDetailedMetrics.Size = new System.Drawing.Size(883, 60);
             this.flpDetailedMetrics.TabIndex = 1;
             // 
             // label2
@@ -722,9 +725,9 @@ namespace vApus.StressTest {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
+            this.ClientSize = new System.Drawing.Size(881, 600);
             this.Controls.Add(this.splitContainer);
             this.Name = "DetailedResultsControl";
-            this.Size = new System.Drawing.Size(897, 639);
             this.splitContainer.Panel1.ResumeLayout(false);
             this.splitContainer.Panel2.ResumeLayout(false);
             this.splitContainer.Panel2.PerformLayout();

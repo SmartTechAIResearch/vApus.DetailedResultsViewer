@@ -34,6 +34,7 @@
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             this.tvw = new System.Windows.Forms.TreeView();
             this.btnOverviewExport = new System.Windows.Forms.Button();
+            this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.pnlBorderStressTest.SuspendLayout();
             this.SuspendLayout();
@@ -87,9 +88,9 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(37, 588);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(123, 16);
+            this.label1.Size = new System.Drawing.Size(46, 16);
             this.label1.TabIndex = 17;
-            this.label1.Text = "Select a stress test";
+            this.label1.Text = "Export";
             // 
             // pnlBorderStressTest
             // 
@@ -97,9 +98,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlBorderStressTest.BackColor = System.Drawing.Color.Silver;
             this.pnlBorderStressTest.Controls.Add(this.cboStressTest);
-            this.pnlBorderStressTest.Location = new System.Drawing.Point(162, 584);
+            this.pnlBorderStressTest.Location = new System.Drawing.Point(89, 584);
             this.pnlBorderStressTest.Name = "pnlBorderStressTest";
-            this.pnlBorderStressTest.Size = new System.Drawing.Size(203, 23);
+            this.pnlBorderStressTest.Size = new System.Drawing.Size(276, 23);
             this.pnlBorderStressTest.TabIndex = 0;
             // 
             // cboStressTest
@@ -114,7 +115,7 @@
             this.cboStressTest.Location = new System.Drawing.Point(1, 1);
             this.cboStressTest.Margin = new System.Windows.Forms.Padding(3, 4, 3, 3);
             this.cboStressTest.Name = "cboStressTest";
-            this.cboStressTest.Size = new System.Drawing.Size(201, 21);
+            this.cboStressTest.Size = new System.Drawing.Size(274, 21);
             this.cboStressTest.TabIndex = 0;
             this.cboStressTest.SelectedIndexChanged += new System.EventHandler(this.cboStressTest_SelectedIndexChanged);
             // 
@@ -154,6 +155,8 @@
             this.btnOverviewExport.Size = new System.Drawing.Size(178, 24);
             this.btnOverviewExport.TabIndex = 26;
             this.btnOverviewExport.Text = "Switch to overview export...";
+            this.toolTip.SetToolTip(this.btnOverviewExport, "Export an overview / comparisson to Excel of test and monitor results for the sel" +
+        "ected results database(s).");
             this.btnOverviewExport.UseVisualStyleBackColor = false;
             this.btnOverviewExport.Click += new System.EventHandler(this.btnOverviewExport_Click);
             // 
@@ -200,5 +203,6 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
         private System.Windows.Forms.TreeView tvw;
         private System.Windows.Forms.Button btnOverviewExport;
+        private System.Windows.Forms.ToolTip toolTip;
     }
 }

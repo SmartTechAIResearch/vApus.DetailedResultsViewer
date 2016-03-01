@@ -446,6 +446,12 @@ namespace vApus.StressTest {
             return _resultsHelper.ExecuteQuery(query);
         }
 
+        private void codeTextBox_KeyPress(object sender, KeyPressEventArgs e) {
+            if (e.KeyChar == (char)10) { //ctrl+enter
+                btnExecute.PerformClick();
+            }
+        }
+
         private void btnDeleteResults_Click(object sender, EventArgs e) {
             if (MessageBox.Show("Are you sure you want to delete the results database?\nThis CANNOT be reverted!", string.Empty, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
                 this.Enabled = false;

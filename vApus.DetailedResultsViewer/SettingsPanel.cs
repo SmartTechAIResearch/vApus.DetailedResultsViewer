@@ -10,6 +10,7 @@ using RandomUtils.Log;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -47,6 +48,7 @@ namespace vApus.DetailedResultsViewer {
             InitializeComponent();
             _rowEnterTimer.Elapsed += _rowEnterTimer_Elapsed;
             RefreshDatabases(true);
+            dgvDatabases.ColumnHeadersDefaultCellStyle.Font = new Font(dgvDatabases.ColumnHeadersDefaultCellStyle.Font, FontStyle.Bold);
             _initing = false;
         }
 
@@ -57,12 +59,14 @@ namespace vApus.DetailedResultsViewer {
                     try {
                         _rowEnterTimer.Stop();
                         _rowEnterTimer.Dispose();
-                    } catch {
+                    }
+                    catch {
                         //Fails only on gui closed.
                     }
                 }
                 _rowEnterTimer = null;
-            } catch { }
+            }
+            catch { }
         }
 
         private void lblConnectToMySQL_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
@@ -83,7 +87,8 @@ namespace vApus.DetailedResultsViewer {
             if (databaseActions == null || setAvailableTags) filterResults.ClearAvailableTags();
             if (databaseActions == null) {
                 if (ResultsSelected != null) ResultsSelected(this, new ResultsSelectedEventArgs(null, 0));
-            } else {
+            }
+            else {
                 if (setAvailableTags) filterResults.SetAvailableTags(databaseActions);
                 FillDatabasesDataGridView(databaseActions);
                 cboStressTest.Enabled = true;
@@ -96,13 +101,18 @@ namespace vApus.DetailedResultsViewer {
 
             try {
                 if (_mySQLServerDialog.Connected) {
-                    lblConnectToMySQL.Text = "Results server Connected!";
+                    string user, host, password;
+                    int port;
+                    _mySQLServerDialog.GetCurrentConnectionString(out user, out host, out port, out password);
+
+                    lblConnectToMySQL.Text = "MySQL server: " + user + "@" + host + ":" + port;
                     toolTip.SetToolTip(lblConnectToMySQL, "Click to choose another MySQL server.");
 
                     return new DatabaseActions() { ConnectionString = _mySQLServerDialog.ConnectionString };
                 }
                 if (!_initing) MessageBox.Show("Could not connect to the results server.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            } catch {
+            }
+            catch {
             }
 
             return null;
@@ -139,7 +149,8 @@ namespace vApus.DetailedResultsViewer {
                             var arr = _filterDatabasesWorkItem.FilterDatabase(dba, database, filter);
                             if (arr != null) _dataSource.Rows.Add(arr);
                         }
-                    } catch {
+                    }
+                    catch {
                         //Ignore
                     }
                 }
@@ -153,11 +164,13 @@ namespace vApus.DetailedResultsViewer {
 
                 if (dgvDatabases.Rows.Count == 0) {
                     if (ResultsSelected != null) ResultsSelected(this, new ResultsSelectedEventArgs(null, 0));
-                } else {
+                }
+                else {
                     foreach (DataGridViewColumn clm in dgvDatabases.Columns) clm.SortMode = DataGridViewColumnSortMode.NotSortable;
                     if (dgvDatabases.Rows.Count != 0) dgvDatabases.Rows[0].Selected = true;
                 }
-            } catch { }
+            }
+            catch { }
             try { if (!Disposing && !IsDisposed) Cursor = Cursors.Arrow; } catch { }
         }
 
@@ -181,7 +194,8 @@ namespace vApus.DetailedResultsViewer {
                 _rowEnterTimer.Elapsed -= _rowEnterTimer_Elapsed;
                 try {
                     dgvDatabases_RowEnterDelayed(_rowEnterTimer.GetTag() as DataGridViewCellEventArgs);
-                } catch { }
+                }
+                catch { }
             }
         }
 
@@ -219,12 +233,15 @@ namespace vApus.DetailedResultsViewer {
                             }, null);
                         }, null);
 
-                    } else if (ResultsSelected != null) ResultsSelected(this, new ResultsSelectedEventArgs(null, 0));
-                } else {
+                    }
+                    else if (ResultsSelected != null) ResultsSelected(this, new ResultsSelectedEventArgs(null, 0));
+                }
+                else {
                     if (stressTests.Rows.Count == 1) {
                         cboStressTest.Items.Add((string)stressTests.Rows[0].ItemArray[1] + " " + stressTests.Rows[0].ItemArray[2]);
-                    } else {
-                        cboStressTest.Items.Add("<All>");
+                    }
+                    else {
+                        cboStressTest.Items.Add("<All stress tests>");
                         foreach (DataRow stressTestRow in stressTests.Rows)
                             cboStressTest.Items.Add((string)stressTestRow.ItemArray[1] + " " + stressTestRow.ItemArray[2]);
                     }
@@ -306,7 +323,8 @@ namespace vApus.DetailedResultsViewer {
                         itemArray[3] = database;
                         return itemArray;
                     }
-                } catch {
+                }
+                catch {
                 }
                 return null;
             }
@@ -342,7 +360,8 @@ namespace vApus.DetailedResultsViewer {
                                 throw new Exception();
                         });
                     }
-                } catch {
+                }
+                catch {
                     MessageBox.Show(string.Empty, "Failed deleting selected database(s).", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
@@ -362,7 +381,8 @@ namespace vApus.DetailedResultsViewer {
                     var overviewExportDialog = new OverviewExportToExcelDialog();
                     overviewExportDialog.Init(_resultsHelper, databaseNames.Values);
                     overviewExportDialog.ShowDialog();
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Loggers.Log(Level.Error, "Failed exporting overview to Excel.", ex);
                     MessageBox.Show(string.Empty, "Failed exporting overview to Excel.", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }

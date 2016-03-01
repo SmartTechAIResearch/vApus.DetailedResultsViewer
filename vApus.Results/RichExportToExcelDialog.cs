@@ -164,7 +164,7 @@ namespace vApus.Results {
                 this.Enabled = false;
             } else {
                 if (stressTests.Rows.Count > 1)
-                    cboStressTest.Items.Add("<All>");
+                    cboStressTest.Items.Add("<All stress tests>");
                 foreach (DataRow stressTestRow in stressTests.Rows)
                     cboStressTest.Items.Add((string)stressTestRow.ItemArray[1] + " " + stressTestRow.ItemArray[2]);
 

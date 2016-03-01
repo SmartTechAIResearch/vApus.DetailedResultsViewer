@@ -47,8 +47,6 @@ namespace vApus.Results {
             _databaseNames = databaseNames;
 
             btnRichExport.Visible = canSwitchToRichExport;
-
-            lblDescription.Text = "Export test and monitor results per concurrency for the " + _databaseNames.Count() + " selected results database(s).";
         }
         private void btnExportToExcel_Click(object sender, EventArgs e) { Export(); }
         async private void Export() {

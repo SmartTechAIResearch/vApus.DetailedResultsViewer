@@ -41,7 +41,9 @@ namespace vApus.Results {
             StackedBar = 0,
             StackedColumnAndLine,
             Column,
-            TwoLines
+            TwoLines,
+            Line,
+            PercentLine
         }
 
         #region Fields
@@ -458,11 +460,11 @@ namespace vApus.Results {
         }
 
         private static string Meta(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            DataTable dt = resultsHelper.GetMeta(token, stressTestId);
+            DataTable metaDt = resultsHelper.GetMeta(token, stressTestId);
             string firstWorksheet = null;
 
             int i = 0;
-            foreach (DataRow row in dt.Rows) {
+            foreach (DataRow row in metaDt.Rows) {
                 dynamic data = JObject.Parse(row["Meta"] as string);
                 if (data.type == "WebPageTest") {
                     var colorPalette = new List<Color>(7);
@@ -475,11 +477,21 @@ namespace vApus.Results {
                     colorPalette.Add(Color.FromArgb(47, 114, 132));
                     colorPalette.Add(Color.FromArgb(166, 99, 44));
 
-                    DataTable waterfallDt;
-                    string worksheet = CreateWaterfallWorksheet(doc, data.requests, (++i).ToString(), out waterfallDt);
-                    AddChart(doc, waterfallDt.Columns.Count, waterfallDt.Rows.Count + 1, "Waterfall (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
-                    CreateWaterfallWorksheet(doc, data.cachedRequests, i + " cached", out waterfallDt);
-                    AddChart(doc, waterfallDt.Columns.Count, waterfallDt.Rows.Count + 1, "Waterfall cached (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
+                    DataTable dt;
+                    string worksheet = CreateWaterfallWorksheet(doc, data.requests, "W " + (++i), out dt);
+                    AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
+                    CreateWaterfallWorksheet(doc, data.cachedRequests, "W " + i + " cached", out dt);
+                    AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall cached (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
+
+                    CreateCpuUtilizationWorkSheet(doc, data.utilization, "CPU " + i, out dt);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU (%)", "Milliseconds", string.Empty, ChartType.PercentLine);
+                    CreateCpuUtilizationWorkSheet(doc, data.cachedUtilization, "CPU " + i + " cached", out dt);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU cached (%)", "Milliseconds", string.Empty, ChartType.PercentLine);
+
+                    CreateBandwidthUtilizationWorkSheet(doc, data.utilization, "B " + i, out dt);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth (Mbps)", "Milliseconds", string.Empty, ChartType.Line);
+                    CreateBandwidthUtilizationWorkSheet(doc, data.cachedUtilization, "B " + i + " cached", out dt);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth cached (Mbps)", "Milliseconds", string.Empty, ChartType.Line);
 
                     if (firstWorksheet == null) firstWorksheet = worksheet;
                 }
@@ -488,15 +500,37 @@ namespace vApus.Results {
             return firstWorksheet;
         }
 
-        private static string CreateWaterfallWorksheet(SLDocument doc, JArray requests, string title, out DataTable waterfallDt) {
-            waterfallDt = CreateEmptyDataTable("Waterfall", "Url", "empty", "DNS", "Connect", "SSL", "Time to first byte", "Time to last byte");
+        private static string CreateWaterfallWorksheet(SLDocument doc, JArray requests, string title, out DataTable dt) {
+            dt = CreateEmptyDataTable("Waterfall", "Url", "empty", "DNS", "Connect", "SSL", "Time to first byte", "Time to last byte", "Socket ID");
 
             foreach (dynamic r in requests)
-                waterfallDt.Rows.Add(r.method + " " + r.result + " " + r.host + r.url, (long)r.requestOffsetInMs, (long)r.dnsInMs,
-                    (long)r.connectInMs, (long)r.sslInMs, (long)r.timeToFirstByteInMs, (long)r.timeToLastByteInMs);
+                dt.Rows.Add(r.method + " " + r.result + " " + r.host + r.url, (long)r.requestOffsetInMs, (long)r.dnsInMs,
+                    (long)r.connectInMs, (long)r.sslInMs, (long)r.timeToFirstByteInMs, (long)r.timeToLastByteInMs, (long)r.socketId);
 
-            string worksheet = MakeWorksheet(doc, waterfallDt, title, false, true);         
+            string worksheet = MakeWorksheet(doc, dt, title, true, true);         
             
+            return worksheet;
+        }
+
+        private static string CreateCpuUtilizationWorkSheet(SLDocument doc, JArray utilization, string title, out DataTable dt) {
+            dt = CreateEmptyDataTable("Utilizaton", "Offset (ms)", "CPU (%)");
+
+            foreach (dynamic u in utilization)
+                dt.Rows.Add((long)u.offsetTimeInMs, (double)u.cpuUtilizationInPercent);
+
+            string worksheet = MakeWorksheet(doc, dt, title, false, true);
+
+            return worksheet;
+        }
+
+        private static string CreateBandwidthUtilizationWorkSheet(SLDocument doc, JArray utilization, string title, out DataTable dt) {
+            dt = CreateEmptyDataTable("Utilizaton", "Offset (ms)", "Bandwidth (Mbps)");
+
+            foreach (dynamic u in utilization)
+                dt.Rows.Add((long)u.offsetTimeInMs, Convert.ToDouble((long)u.bandwidthInInkbps) / 1000);
+
+            string worksheet = MakeWorksheet(doc, dt, title, false, true);
+
             return worksheet;
         }
 
@@ -730,6 +764,10 @@ namespace vApus.Results {
                 chart = MakeColumnChart(chart, rangeWidth, setDataSeriesColors, dataSeriesColors);
             else if (type == ChartType.TwoLines)
                 chart = MakeTwoLinesChart(chart);
+            else if (type == ChartType.Line)
+                chart = MakeLineChart(chart);
+            else if (type == ChartType.PercentLine)
+                chart = MakePercentLineChart(chart);
 
             if (location == ChartLocation.RightOfData)
                 chart.SetChartPosition(0, rangeWidth + 2, 45, rangeWidth + 21);
@@ -807,6 +845,22 @@ namespace vApus.Results {
             var dso2 = chart.GetDataSeriesOptions(secondaryDataSeriesIndex);
             dso2.Line.SetSolidLine(Color.LimeGreen, 0);
             chart.SetDataSeriesOptions(secondaryDataSeriesIndex, dso2);
+
+            return chart;
+        }
+
+        private static SLChart MakePercentLineChart(SLChart chart) {
+            chart.SetChartType(SLLineChartType.Line);
+            chart.HideChartLegend();
+
+            chart.PrimaryValueAxis.Maximum = 100;
+
+            return chart;
+        }
+
+        private static SLChart MakeLineChart(SLChart chart) {
+            chart.SetChartType(SLLineChartType.Line);
+            chart.HideChartLegend();
 
             return chart;
         }

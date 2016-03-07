@@ -128,7 +128,7 @@ namespace vApus.Results {
         }
 
         private void txt_TextChanged(object sender, EventArgs e) {
-            string host = txtHost.Text.Trim().ToLower();
+            string host = txtHost.Text.Trim().ToLowerInvariant();
             if (cboConnectionString.SelectedIndex != cboConnectionString.Items.Count - 1) {
                 string user, password;
                 int port;
@@ -164,7 +164,7 @@ namespace vApus.Results {
                 ConnectionStringManager.EditConnectionString(cboConnectionString.SelectedIndex, txtUser.Text, txtHost.Text, (int)nudPort.Value, txtPassword.Text);
             SetGui();
 
-            string host = txtHost.Text.Trim().ToLower();
+            string host = txtHost.Text.Trim().ToLowerInvariant();
             if (_showLocalHostWarning && (host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "0:0:0:0:0:0:0:1"))
                 MessageBox.Show("The results server must be reachable from a remote location, otherwise distributed testing won't work!\nBe sure that '" + txtHost.Text.Trim() + "' is what you want.", string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }

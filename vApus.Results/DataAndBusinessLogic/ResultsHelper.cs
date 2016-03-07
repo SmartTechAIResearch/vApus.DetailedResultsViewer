@@ -58,7 +58,7 @@ namespace vApus.Results {
 
                     foreach (string tag in tags) {
                         var sb = new StringBuilder("('");
-                        sb.Append(tag);
+                        sb.Append(tag.ToLowerInvariant());
                         sb.Append("')");
                         rowsToInsert.Add(sb.ToString());
                     }

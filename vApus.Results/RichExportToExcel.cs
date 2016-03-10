@@ -386,16 +386,16 @@ namespace vApus.Results {
         }
 
         private static string GeneralTop5HeaviestUserActionsForAverageResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions(token, stressTestId), stressTestId, resultsHelper, token, "", " (averages)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions(token, stressTestId), stressTestId, resultsHelper, token, " (averages)", " (averages)");
         }
         private static string GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "_", " (95th %iles)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (95th %iles)", " (95th %iles)");
         }
         private static string GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "__", " (99th %iles)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (99th %iles)", " (99th %iles)");
         }
         private static string GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, "___", " (max)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, " (max)", " (max)");
         }
 
         private static string GeneralTop5HeaviestUserActions(SLDocument doc, DataTable dt, int stressTestId, ResultsHelper resultsHelper, CancellationToken token, string worksheetSuffix, string chartTitleSuffix) {

@@ -73,10 +73,10 @@ namespace vApus.Results {
 
             _toExport.Add("General'/'Errors vs throughput", GeneralErrorsVSThroughput);
 
-            _toExport.Add("General'/'Top 5 heaviest user actions'/'for average response times", GeneralTop5HeaviestUserActionsForAverageResponseTimes);
-            _toExport.Add("General'/'Top 5 heaviest user actions'/'for 95th percentile for the response times", GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes);
-            _toExport.Add("General'/'Top 5 heaviest user actions'/'for 99th percentile for the response times", GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes);
-            _toExport.Add("General'/'Top 5 heaviest user actions'/'for average top 5 the response times", GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes);
+            _toExport.Add("General'/'Top 5 slowest user actions'/'for average response times", GeneralTop5HeaviestUserActionsForAverageResponseTimes);
+            _toExport.Add("General'/'Top 5 slowest user actions'/'for 95th percentile for the response times", GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes);
+            _toExport.Add("General'/'Top 5 slowest user actions'/'for 99th percentile for the response times", GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes);
+            _toExport.Add("General'/'Top 5 slowest user actions'/'for max response times", GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes);
 
             _toExport.Add("General'/'Results per concurrency", GeneralResultsPerConcurrency);
             _toExport.Add("General'/'Results per user action", GeneralResultsPerUserAction);
@@ -84,7 +84,7 @@ namespace vApus.Results {
 
             _toExport.Add("General'/'Errors", GeneralErrors);
 
-            _toExport.Add("General'/'User action composition", GeneralUserActionComposisiton);
+            _toExport.Add("General'/'Scenarios", GeneralScenarios);
 
             _toExport.Add("Meta'/'Export meta results if any", Meta);
 
@@ -389,24 +389,24 @@ namespace vApus.Results {
             return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions(token, stressTestId), stressTestId, resultsHelper, token, "", " (averages)");
         }
         private static string GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "_", " (95th percentiles)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "_", " (95th %iles)");
         }
         private static string GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "__", " (99th percentiles)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, "__", " (99th %iles)");
         }
         private static string GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, "___", " (top 5 averages)");
+            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, "___", " (max)");
         }
 
         private static string GeneralTop5HeaviestUserActions(SLDocument doc, DataTable dt, int stressTestId, ResultsHelper resultsHelper, CancellationToken token, string worksheetSuffix, string chartTitleSuffix) {
             dt = Prep(dt);
-            string title = "Top 5 heaviest user actions";
+            string title = "Top 5 slowest";
 
             string workSheet = MakeWorksheet(doc, dt, title + worksheetSuffix, false, true);
 
             List<Color> colorPalette = GetGeneralTop5HeaviestUserActionsColors(dt, stressTestId, resultsHelper, token);
 
-            AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, title + chartTitleSuffix, "Concurrency", "Response time (ms)", ChartType.Column, ChartLocation.RightOfData, true, colorPalette);
+            AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, title + " user actions " + chartTitleSuffix, "Concurrency", "Response time (ms)", ChartType.Column, ChartLocation.RightOfData, true, colorPalette);
 
             return workSheet;
         }
@@ -541,10 +541,10 @@ namespace vApus.Results {
             return dataTable;
         }
 
-        private static string GeneralUserActionComposisiton(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string GeneralScenarios(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetUserActionComposition(token, stressTestId));
 
-            var userActionComposition = new DataTable("UserActionComposition");
+            var userActionComposition = new DataTable("Scenarios");
             userActionComposition.Columns.Add();
             userActionComposition.Columns.Add();
 
@@ -562,7 +562,7 @@ namespace vApus.Results {
                     userActionComposition.Rows.Add(string.Empty, request);
             }
 
-            string title = "User action composition";
+            string title = "Scenarios";
             return MakeWorksheet(doc, userActionComposition, title, false, true, false);
         }
 

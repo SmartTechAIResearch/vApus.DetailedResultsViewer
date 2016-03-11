@@ -47,7 +47,7 @@ namespace vApus.Results {
         }
 
         #region Fields
-        private static string[] GROUPS = { "General", "Meta", "Monitor data'/'*", "Specialized" };
+        private static string[] GROUPS = { "Stress test", "Monitor data'/'*", "Specialized" };
 
         private delegate string Del(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token);
         private static Dictionary<string, Del> _toExport;
@@ -68,28 +68,27 @@ namespace vApus.Results {
         /// </summary>
         private static void InitToExport() {
             _toExport = new Dictionary<string, Del>();
-            _toExport.Add("General'/'Response time vs throughput'/'with throughput in responses / s", GeneralResponseTimeVSThroughputWithThroughputInResponsesPerS);
-            _toExport.Add("General'/'Response time vs throughput'/'with throughput in user actions / s", GeneralResponseTimeVSThroughputWithThroughputInUserActionsPerS);
+            _toExport.Add("Stress test'/'Response time vs throughput'/'with throughput in responses / s", StressTestResponseTimeVSThroughputWithThroughputInResponsesPerS);
+            _toExport.Add("Stress test'/'Response time vs throughput'/'with throughput in user actions / s", StressTestResponseTimeVSThroughputWithThroughputInUserActionsPerS);
 
-            _toExport.Add("General'/'Errors vs throughput", GeneralErrorsVSThroughput);
+            _toExport.Add("Stress test'/'Errors vs throughput", StressTestErrorsVSThroughput);
 
-            _toExport.Add("General'/'Top 5 slowest user actions'/'for average response times", GeneralTop5HeaviestUserActionsForAverageResponseTimes);
-            _toExport.Add("General'/'Top 5 slowest user actions'/'for 95th percentile for the response times", GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes);
-            _toExport.Add("General'/'Top 5 slowest user actions'/'for 99th percentile for the response times", GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes);
-            _toExport.Add("General'/'Top 5 slowest user actions'/'for max response times", GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes);
+            _toExport.Add("Stress test'/'Top 5 slowest user actions'/'for average response times", StressTestTop5SlowestUserActionsForAverageResponseTimes);
+            _toExport.Add("Stress test'/'Top 5 slowest user actions'/'for 95th percentile for the response times", StressTestTop5SlowestUserActionsFor95thPercentileForTheResponseTimes);
+            _toExport.Add("Stress test'/'Top 5 slowest user actions'/'for 99th percentile for the response times", StressTestTop5SlowestUserActionsFor99thPercentileForTheResponseTimes);
+            _toExport.Add("Stress test'/'Top 5 slowest user actions'/'for max response times", StressTestTop5SlowestUserActionsForAverageTop5ResponseTimes);
 
-            _toExport.Add("General'/'Results per concurrency", GeneralResultsPerConcurrency);
-            _toExport.Add("General'/'Results per user action", GeneralResultsPerUserAction);
-            _toExport.Add("General'/'Results per request", GeneralResultsPerRequest);
+            _toExport.Add("Stress test'/'Results per concurrency", StressTestResultsPerConcurrency);
+            _toExport.Add("Stress test'/'Results per user action", StressTestResultsPerUserAction);
+            _toExport.Add("Stress test'/'Results per request", StressTestResultsPerRequest);
 
-            _toExport.Add("General'/'Errors", GeneralErrors);
+            _toExport.Add("Stress test'/'Errors", StressTestErrors);
 
-            _toExport.Add("General'/'Scenarios", GeneralScenarios);
-
-            _toExport.Add("Meta'/'Export meta results if any", Meta);
+            _toExport.Add("Stress test'/'Scenarios", StressTestScenarios);
 
             _toExport.Add("Monitor data'/'*", MonitorData);
 
+            _toExport.Add("Specialized'/'Export meta results if any (currently only WebPageTest)", Meta);
             _toExport.Add("Specialized'/'Response time distribution'/'for requests per concurrency", SpecializedResponseTimeDistributionForRequestsPerConcurrency);
             _toExport.Add("Specialized'/'Response time distribution'/'for user actions per concurrency", SpecializedResponseTimeDistributionForUserActionsPerConcurrency);
         }
@@ -296,7 +295,7 @@ namespace vApus.Results {
                     DataRow stressTestsRow = stressTests.Rows[0];
                     string stressTest = string.Format("{0} {1}", stressTestsRow["StressTest"], stressTestsRow["Connection"]);
 
-                    string docFileName = (stressTest + "_" + dataSet).Replace(' ', '_').ReplaceInvalidWindowsFilenameChars('_') + ".xlsx";
+                    string docFileName = (stressTest + "_" + dataSet).ReplaceInvalidWindowsFilenameChars('_').Replace(' ', '_').Replace("__", "_") + ".xlsx";
                     string firstWorksheet = null;
 
                     foreach (Del del in dataSetStructure[dataSet]) {
@@ -357,7 +356,7 @@ namespace vApus.Results {
         //Do not forget to prep the datatables coming from the results helper. Prep(...) makes a copy and removes the "Stress test" column and replaces "<16 0C 02 12$>" by "•"
         //---
 
-        private static string GeneralResponseTimeVSThroughputWithThroughputInResponsesPerS(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestResponseTimeVSThroughputWithThroughputInResponsesPerS(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetOverview(token, stressTestId));
             dt.Columns.Remove("User actions / s");
             string title = "Response time vs throughput";
@@ -366,7 +365,7 @@ namespace vApus.Results {
 
             return workSheet;
         }
-        private static string GeneralResponseTimeVSThroughputWithThroughputInUserActionsPerS(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestResponseTimeVSThroughputWithThroughputInUserActionsPerS(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetOverview(token, stressTestId));
             dt.Columns.Remove("Throughput");
             string title = "Response time vs user actions / s";
@@ -376,7 +375,7 @@ namespace vApus.Results {
             return workSheet;
         }
 
-        private static string GeneralErrorsVSThroughput(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestErrorsVSThroughput(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetOverviewErrors(token, stressTestId));
             string title = "Errors vs throughput";
             string workSheet = MakeWorksheet(doc, dt, title, false, true);
@@ -385,26 +384,26 @@ namespace vApus.Results {
             return workSheet;
         }
 
-        private static string GeneralTop5HeaviestUserActionsForAverageResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions(token, stressTestId), stressTestId, resultsHelper, token, " (averages)", " (averages)");
+        private static string StressTestTop5SlowestUserActionsForAverageResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+            return StressTestTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions(token, stressTestId), stressTestId, resultsHelper, token, " (averages)", " (averages)");
         }
-        private static string GeneralTop5HeaviestUserActionsFor95thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (95th %iles)", " (95th %iles)");
+        private static string StressTestTop5SlowestUserActionsFor95thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+            return StressTestTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions95thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (95th %iles)", " (95th %iles)");
         }
-        private static string GeneralTop5HeaviestUserActionsFor99thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (99th %iles)", " (99th %iles)");
+        private static string StressTestTop5SlowestUserActionsFor99thPercentileForTheResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+            return StressTestTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActions99thPercentile(token, stressTestId), stressTestId, resultsHelper, token, " (99th %iles)", " (99th %iles)");
         }
-        private static string GeneralTop5HeaviestUserActionsForAverageTop5ResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
-            return GeneralTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, " (max)", " (max)");
+        private static string StressTestTop5SlowestUserActionsForAverageTop5ResponseTimes(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+            return StressTestTop5HeaviestUserActions(doc, resultsHelper.GetTop5HeaviestUserActionsAverageTop5(token, stressTestId), stressTestId, resultsHelper, token, " (max)", " (max)");
         }
 
-        private static string GeneralTop5HeaviestUserActions(SLDocument doc, DataTable dt, int stressTestId, ResultsHelper resultsHelper, CancellationToken token, string worksheetSuffix, string chartTitleSuffix) {
+        private static string StressTestTop5HeaviestUserActions(SLDocument doc, DataTable dt, int stressTestId, ResultsHelper resultsHelper, CancellationToken token, string worksheetSuffix, string chartTitleSuffix) {
             dt = Prep(dt);
             string title = "Top 5 slowest";
 
             string workSheet = MakeWorksheet(doc, dt, title + worksheetSuffix, false, true);
 
-            List<Color> colorPalette = GetGeneralTop5HeaviestUserActionsColors(dt, stressTestId, resultsHelper, token);
+            List<Color> colorPalette = GetStressTestTop5SlowestUserActionsColors(dt, stressTestId, resultsHelper, token);
 
             AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, title + " user actions " + chartTitleSuffix, "Concurrency", "Response time (ms)", ChartType.Column, ChartLocation.RightOfData, true, colorPalette);
 
@@ -419,7 +418,7 @@ namespace vApus.Results {
         /// <param name="stressTestId"></param>
         /// <param name="resultsHelper"></param>
         /// <param name="token"></param>
-        private static List<Color> GetGeneralTop5HeaviestUserActionsColors(DataTable top5Heaviest, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static List<Color> GetStressTestTop5SlowestUserActionsColors(DataTable top5Heaviest, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             var clone = top5Heaviest.Copy();
             clone.Columns.Remove("Concurrency");
 
@@ -437,23 +436,23 @@ namespace vApus.Results {
             return colorPalette;
         }
 
-        private static string GeneralResultsPerConcurrency(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestResultsPerConcurrency(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetAverageConcurrencyResults(token, stressTestId));
             string title = "Results per concurrency";
             return MakeWorksheet(doc, dt, title, true, true);
         }
-        private static string GeneralResultsPerUserAction(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestResultsPerUserAction(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetAverageUserActionResults(token, stressTestId));
             string title = "Results per user action";
             return MakeWorksheet(doc, dt, title, true, true);
         }
-        private static string GeneralResultsPerRequest(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestResultsPerRequest(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetAverageRequestResults(token, stressTestId));
             string title = "Results per request";
             return MakeWorksheet(doc, dt, title, true, true);
         }
 
-        private static string GeneralErrors(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestErrors(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetErrors(token, stressTestId));
             string title = "Errors";
             return MakeWorksheet(doc, dt, title, true, true);
@@ -484,14 +483,14 @@ namespace vApus.Results {
                     AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall cached (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
 
                     CreateCpuUtilizationWorkSheet(doc, data.utilization, "CPU " + i, out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU (%)", "Milliseconds", string.Empty, ChartType.PercentLine);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
                     CreateCpuUtilizationWorkSheet(doc, data.cachedUtilization, "CPU " + i + " cached", out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU cached (%)", "Milliseconds", string.Empty, ChartType.PercentLine);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU cached (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
 
                     CreateBandwidthUtilizationWorkSheet(doc, data.utilization, "B " + i, out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth (Mbps)", "Milliseconds", string.Empty, ChartType.Line);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
                     CreateBandwidthUtilizationWorkSheet(doc, data.cachedUtilization, "B " + i + " cached", out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth cached (Mbps)", "Milliseconds", string.Empty, ChartType.Line);
+                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth cached (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
 
                     if (firstWorksheet == null) firstWorksheet = worksheet;
                 }
@@ -507,8 +506,8 @@ namespace vApus.Results {
                 dt.Rows.Add(r.method + " " + r.result + " " + r.host + r.url, (long)r.requestOffsetInMs, (long)r.dnsInMs,
                     (long)r.connectInMs, (long)r.sslInMs, (long)r.timeToFirstByteInMs, (long)r.timeToLastByteInMs, (long)r.socketId);
 
-            string worksheet = MakeWorksheet(doc, dt, title, true, true);         
-            
+            string worksheet = MakeWorksheet(doc, dt, title, true, true);
+
             return worksheet;
         }
 
@@ -541,7 +540,7 @@ namespace vApus.Results {
             return dataTable;
         }
 
-        private static string GeneralScenarios(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
+        private static string StressTestScenarios(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetUserActionComposition(token, stressTestId));
 
             var userActionComposition = new DataTable("Scenarios");
@@ -669,21 +668,27 @@ namespace vApus.Results {
             if (value is string) {
                 string s = value as string;
                 if (s.IsNumeric()) doc.SetCellValue(row, column, double.Parse(s)); else doc.SetCellValue(row, column, s); //Overcoming wrong datatable conversions.
-            } else if (value is int) {
+            }
+            else if (value is int) {
                 doc.SetCellValue(row, column, (int)value);
-            } else if (value is long) {
+            }
+            else if (value is long) {
                 doc.SetCellValue(row, column, (long)value);
-            } else if (value is float) {
+            }
+            else if (value is float) {
                 doc.SetCellValue(row, column, (double)(decimal)(float)value); //Ensures no formatting garbage when changing types.
-            } else if (value is double) {
+            }
+            else if (value is double) {
                 doc.SetCellValue(row, column, (double)value);
-            } else if (value is DateTime) {
+            }
+            else if (value is DateTime) {
                 DateTime dt = (DateTime)value;
                 TimeSpan ts = new TimeSpan(dt.Ticks);
                 string dtString = ts.TotalSeconds < 1d ? dt.ToString("yyyy'-'MM'-'dd HH':'mm':'ss'.'fff") : dt.ToString("yyyy'-'MM'-'dd HH':'mm':'ss");
 
                 doc.SetCellValue(row, column, dtString);
-            } else {
+            }
+            else {
                 doc.SetCellValue(row, column, value.ToString());
             }
         }
@@ -733,8 +738,11 @@ namespace vApus.Results {
         /// <param name="setDataSeriesColors">Where available</param>
         /// <param name="dataSeriesColors">Default (_colorPalette) used if null</param>
         /// <returns></returns>
-        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, ChartType type, ChartLocation location = ChartLocation.RightOfData, bool setDataSeriesColors = false, List<Color> dataSeriesColors = null) {
-            return AddChart(doc, rangeWidth, rangeHeight, title, xAxis, yAxis, string.Empty, type, location, setDataSeriesColors, dataSeriesColors);
+        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, ChartType type,
+            ChartLocation location = ChartLocation.RightOfData, bool setDataSeriesColors = false, List<Color> dataSeriesColors = null,
+            bool showXLabels = true, bool showMinorGridLines = true) {
+            return AddChart(doc, rangeWidth, rangeHeight, title, xAxis, yAxis, string.Empty, type, location, setDataSeriesColors, dataSeriesColors,
+                showXLabels, showMinorGridLines);
         }
         /// <summary>
         /// 
@@ -751,7 +759,9 @@ namespace vApus.Results {
         /// <param name="setDataSeriesColors">Where available</param>
         /// <param name="dataSeriesColors">Default (_colorPalette) used if null</param>
         /// <returns></returns>
-        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, string secondaryYAxis, ChartType type, ChartLocation location = ChartLocation.RightOfData, bool setDataSeriesColors = false, List<Color> dataSeriesColors = null) {
+        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, string secondaryYAxis, 
+            ChartType type, ChartLocation location = ChartLocation.RightOfData, bool setDataSeriesColors = false, List<Color> dataSeriesColors = null,
+            bool showXLabels = true, bool showMinorGridLines = true) {
             SLChart chart = doc.CreateChart(1, 1, rangeHeight, rangeWidth, new SLCreateChartOptions() { RowsAsDataSeries = false, ShowHiddenData = false });
 
             if (dataSeriesColors == null) dataSeriesColors = _colorPalette;
@@ -776,17 +786,20 @@ namespace vApus.Results {
 
             //Set the tiles
             chart.Title.SetTitle(title);
-            chart.ShowChartTitle(false);
+            if (!string.IsNullOrEmpty(title))
+                chart.ShowChartTitle(false);
+
             chart.PrimaryTextAxis.Title.SetTitle(xAxis);
             chart.PrimaryTextAxis.ShowTitle = !string.IsNullOrEmpty(xAxis);
-            chart.PrimaryValueAxis.Title.SetTitle(yAxis);
-            chart.PrimaryValueAxis.ShowTitle = !string.IsNullOrEmpty(xAxis);
-            chart.PrimaryValueAxis.ShowMinorGridlines = true;
 
-            if (!string.IsNullOrWhiteSpace(secondaryYAxis)) {
-                chart.SecondaryValueAxis.Title.SetTitle(secondaryYAxis);
-                chart.SecondaryValueAxis.ShowTitle = true;
-            }
+            chart.PrimaryValueAxis.Title.SetTitle(yAxis);
+            chart.PrimaryValueAxis.ShowTitle = !string.IsNullOrEmpty(yAxis);
+            chart.PrimaryValueAxis.ShowMinorGridlines = showMinorGridLines;
+
+            chart.SecondaryValueAxis.Title.SetTitle(secondaryYAxis);
+            chart.SecondaryValueAxis.ShowTitle = !string.IsNullOrWhiteSpace(secondaryYAxis);
+
+            if (!showXLabels) chart.HidePrimaryTextAxis();
 
             doc.InsertChart(chart);
 

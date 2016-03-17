@@ -136,7 +136,18 @@ namespace vApus.DetailedResultsViewer {
                 var temp = databaseActions.GetDataTable("Show Databases;");
                 foreach (DataRow rrDB in temp.Rows) {
                     string db = rrDB.ItemArray[0] as string;
-                    if (db.StartsWith("vapus", StringComparison.OrdinalIgnoreCase)) dbs.Rows.Add(db);
+                    if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
+                        bool canAdd = true;
+                        try {
+                            DataTable dt = databaseActions.GetDataTable("Select * from " + db + ".resultsreadystate;");
+                            if (dt.Rows.Count == 1) canAdd = (dt.Rows[0]["State"] as string == "Ready");
+                        }
+                        catch {
+                            //support older dbs.
+                        }
+
+                        if (canAdd) dbs.Rows.Add(db);
+                    }
                 }
 
                 foreach (DataRow dbsr in dbs.Rows) {

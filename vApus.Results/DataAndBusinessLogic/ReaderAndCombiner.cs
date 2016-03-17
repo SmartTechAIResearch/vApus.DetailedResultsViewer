@@ -972,12 +972,12 @@ namespace vApus.Results {
                 where = string.Empty;
             } else {
                 where = where.Trim();
-                if (!mustStartWithWhere && where.StartsWith("where", StringComparison.OrdinalIgnoreCase))
+                if (!mustStartWithWhere && where.StartsWith("where", StringComparison.InvariantCultureIgnoreCase))
                     where = where.Substring(5);
-                else if (mustStartWithWhere && !where.StartsWith("where", StringComparison.OrdinalIgnoreCase))
+                else if (mustStartWithWhere && !where.StartsWith("where", StringComparison.InvariantCultureIgnoreCase))
                     where = " Where " + where;
 
-                if (!mustStartWithWhere && !where.StartsWith("And", StringComparison.OrdinalIgnoreCase))
+                if (!mustStartWithWhere && !where.StartsWith("And", StringComparison.InvariantCultureIgnoreCase))
                     where = " And " + where;
             }
             return where;

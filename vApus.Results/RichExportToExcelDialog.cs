@@ -18,6 +18,7 @@ using System.Windows.Forms;
 using vApus.Util;
 using System.Linq;
 using System.Diagnostics;
+using RandomUtils;
 
 namespace vApus.Results {
     /// <summary>
@@ -49,6 +50,9 @@ namespace vApus.Results {
             FillColorPalette();
 
             tvw.VisibleChanged += tvw_VisibleChanged;
+
+            RichExportToExcel.ExportStarted += RichExportToExcel_ExportProgress;
+            RichExportToExcel.ExportFinished += RichExportToExcel_ExportProgress;
         }
 
         private void tvw_VisibleChanged(object sender, EventArgs e) {
@@ -337,6 +341,13 @@ namespace vApus.Results {
                 //}
             }
         }
+        private void RichExportToExcel_ExportProgress(object sender, RichExportToExcel.ExportEventArgs e) {
+            SynchronizationContextWrapper.SynchronizationContext.Send((state) => {
+                var args = state as RichExportToExcel.ExportEventArgs;
+                btnExportToExcel.Text = "Exported " + args.Item + " of " + args.Count;
+            }, e);
+        }
+
 
         //private string MakeRunsOverTimeSheet(SLDocument doc, DataTable dt, Dictionary<string, List<string>> concurrencyAndRuns) {
         //    string title = "Runs over time in minutes";

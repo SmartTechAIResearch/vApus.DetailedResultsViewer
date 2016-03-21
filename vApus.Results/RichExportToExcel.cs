@@ -46,6 +46,9 @@ namespace vApus.Results {
             PercentLine
         }
 
+        public static event EventHandler<ExportEventArgs> ExportStarted, ExportFinished;
+
+
         #region Fields
         private static string[] GROUPS = { "Stress test", "Monitor data'/'*", "Specialized" };
 
@@ -285,6 +288,8 @@ namespace vApus.Results {
 
             Dictionary<string, List<Del>> dataSetStructure = ParseToDataSetStructure(toExport);
 
+            int item = 0, count = dataSetStructure.Count * stressTestIds.Length;
+
             foreach (string dataSet in dataSetStructure.Keys) {
                 foreach (int stressTestId in stressTestIds) {
                     var doc = new SLDocument();
@@ -298,10 +303,18 @@ namespace vApus.Results {
                     string docFileName = (stressTest + "_" + dataSet).ReplaceInvalidWindowsFilenameChars('_').Replace(' ', '_').Replace("__", "_") + ".xlsx";
                     string firstWorksheet = null;
 
+                    if (ExportStarted != null) ExportStarted.Invoke(null, new ExportEventArgs(item, count));
+
                     foreach (Del del in dataSetStructure[dataSet]) {
                         string worksheet = del.Invoke(dataSet, doc, stressTestId, resultsHelper, token);
                         if (firstWorksheet == null) firstWorksheet = worksheet;
+
+
                     }
+
+                    ++item;
+                    if (ExportFinished != null) ExportFinished.Invoke(null, new ExportEventArgs(item, count));
+
 
                     if (firstWorksheet == null) continue;
 
@@ -917,6 +930,15 @@ namespace vApus.Results {
             int bytesRead = 0;
             while ((bytesRead = inputStream.Read(buffer, 0, buffer.Length)) != 0)
                 outputStream.Write(buffer, 0, bytesRead);
+        }
+
+        public class ExportEventArgs : EventArgs {
+            public int Item { get; private set; }
+            public int Count { get; private set; }
+            public ExportEventArgs(int item, int count) {
+                Item = item;
+                Count = count;
+            }
         }
     }
 }

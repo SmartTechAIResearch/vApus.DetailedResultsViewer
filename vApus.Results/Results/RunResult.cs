@@ -50,15 +50,5 @@ namespace vApus.Results {
         }
         #endregion
 
-        #region Functions
-        /// <summary>
-        ///     Only used for break on last run sync. Do this before the rerun is executed.
-        /// </summary>
-        public void PrepareForRerun() {
-            ++RerunCount;
-            for (long l = 0; l != VirtualUserResults.LongLength; l++)
-                VirtualUserResults[l].PrepareForRerun();
-        }
-        #endregion
     }
 }

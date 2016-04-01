@@ -218,7 +218,7 @@ namespace vApus.Results {
                                         virtualUserResults.TryAdd(item.Key, new VirtualUserResult(requestResults[item.Key].Count) { VirtualUser = item.Key });
                                         VirtualUserResult virtualUserResult = virtualUserResults[item.Key];
 
-                                        virtualUserResult.RequestResults = item.Value.Values.ToArray();
+                                        virtualUserResult.RequestResults = item.Value.Values.OrderBy(x => x.SentAt).ToArray();
                                     }
                                     );
                                     runResult.VirtualUserResults = virtualUserResults.Values.ToArray();

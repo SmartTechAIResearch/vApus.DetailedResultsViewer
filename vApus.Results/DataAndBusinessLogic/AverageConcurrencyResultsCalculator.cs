@@ -83,7 +83,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, 4, "Id", "VirtualUser", "UserAction", "RequestIndex", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAt", "Length(Error) As Error", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, 4, "Id", "VirtualUser", "UserAction", "RequestIndex", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);
@@ -193,9 +193,14 @@ namespace vApus.Results {
                                         requestResults.TryAdd(virtualUser, new ConcurrentDictionary<int, RequestResult>());
 
                                         requestResults[virtualUser].TryAdd(rerRowIndex, new RequestResult() {
-                                            VirtualUser = virtualUser, UserAction = rerRow["UserAction"] as string, RequestIndex = rerRow["RequestIndex"] as string,
-                                            InParallelWithPrevious = (bool)rerRow["InParallelWithPrevious"], TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"],
-                                            DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"], SentAt = (DateTime)rerRow["SentAt"], Error = (long)rerRow["Error"] == 0 ? null : "-"
+                                            VirtualUser = virtualUser,
+                                            UserAction = rerRow["UserAction"] as string,
+                                            RequestIndex = rerRow["RequestIndex"] as string,
+                                            InParallelWithPrevious = (bool)rerRow["InParallelWithPrevious"],
+                                            TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"],
+                                            DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"],
+                                            SentAt = new DateTime((ResultsHelper.EpochUtc.Ticks + (long)rerRow["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc),
+                                            Error = (long)rerRow["Error"] == 0 ? null : "-"
                                         });
                                     }
                                     );

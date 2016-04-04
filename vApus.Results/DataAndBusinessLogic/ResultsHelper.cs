@@ -752,12 +752,12 @@ namespace vApus.Results {
                                     int runResultId = (int)rrRow.ItemArray[0];
                                     object run = rrRow.ItemArray[1];
 
-                                    DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(Error)!=0", runResultId, "VirtualUser", "UserAction", "Request", "SentAt", "Error");
+                                    DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(Error)!=0", runResultId, "VirtualUser", "UserAction", "Request", "SentAtInTicksSinceEpochUtc", "Error");
                                     if (requestResults == null || requestResults.Rows.Count == 0) continue;
 
                                     foreach (DataRow ldr in requestResults.Rows) {
                                         if (cancellationToken.IsCancellationRequested) return null;
-                                        errors.Rows.Add(stressTest, ldr["SentAt"], concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Error"]);
+                                        errors.Rows.Add(stressTest, new DateTime((EpochUtc.Ticks + (long)ldr["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc), concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Error"]);
                                     }
                                 }
                             }
@@ -920,12 +920,12 @@ namespace vApus.Results {
                                     int runResultId = (int)rrRow.ItemArray[0];
                                     object run = rrRow.ItemArray[1];
 
-                                    DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(Meta)!=0", runResultId, "VirtualUser", "UserAction", "Request", "SentAt", "Meta");
+                                    DataTable requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, "CHAR_LENGTH(Meta)!=0", runResultId, "VirtualUser", "UserAction", "Request", "SentAtInTicksSinceEpochUtc", "Meta");
                                     if (requestResults == null || requestResults.Rows.Count == 0) continue;
 
                                     foreach (DataRow ldr in requestResults.Rows) {
                                         if (cancellationToken.IsCancellationRequested) return null;
-                                        meta.Rows.Add(stressTest, ldr["SentAt"], concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Meta"]);
+                                        meta.Rows.Add(stressTest, new DateTime((EpochUtc.Ticks + (long)ldr["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc), concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Meta"]);
                                     }
                                 }
                             }
@@ -1636,7 +1636,7 @@ namespace vApus.Results {
 
                 runResultIds.Add((int)rrRow.ItemArray[0]);
             }
-            var requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, runResultIds.ToArray(), "SentAt", "TimeToLastByteInTicks", "DelayInMilliseconds");
+            var requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, runResultIds.ToArray(), "SentAtInTicksSinceEpochUtc", "TimeToLastByteInTicks", "DelayInMilliseconds");
             if (requestResults == null || requestResults.Rows.Count == 0) return null;
 
             //Get the throughput per minute.
@@ -1649,7 +1649,7 @@ namespace vApus.Results {
             foreach (DataRow rerRow in requestResults.Rows) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                DateTime sentAt = (DateTime)rerRow["SentAt"];
+                DateTime sentAt = new DateTime((EpochUtc.Ticks + (long)rerRow["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc);
                 if (sentAt < firstSentAt) firstSentAt = sentAt;
                 if (sentAt > lastSentAt) lastSentAt = sentAt;
                 requestCounters.Add(new RequestCounters() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
@@ -1916,7 +1916,7 @@ namespace vApus.Results {
 
                 runResultIds.Add((int)rrRow.ItemArray[0]);
             }
-            var requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, runResultIds.ToArray(), "SentAt", "TimeToLastByteInTicks", "DelayInMilliseconds");
+            var requestResults = ReaderAndCombiner.GetRequestResults(cancellationToken, _databaseActions, runResultIds.ToArray(), "SentAtInTicksSinceEpochUtc", "TimeToLastByteInTicks", "DelayInMilliseconds");
             if (requestResults == null || requestResults.Rows.Count == 0) return null;
 
             //Following two variables serve at bordering monitor before and after.
@@ -1927,7 +1927,7 @@ namespace vApus.Results {
             foreach (DataRow rerRow in requestResults.Rows) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                DateTime sentAt = (DateTime)rerRow["SentAt"];
+                DateTime sentAt = new DateTime((EpochUtc.Ticks + (long)rerRow["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc);
                 if (sentAt < firstSentAt) firstSentAt = sentAt;
                 if (sentAt > lastSentAt) lastSentAt = sentAt;
                 requestCounters.Add(new RequestCounters() { SentAt = sentAt, TimeToLastByteInTicks = (long)rerRow["TimeToLastByteInTicks"], DelayInMilliseconds = (int)rerRow["DelayInMilliseconds"] });
@@ -2245,6 +2245,9 @@ namespace vApus.Results {
             for (int i = 0; i != columnNames.Length; i++) dataTable.Columns.Add(columnNames[i], columnDataTypes[i]);
             return dataTable;
         }
+
+        public static readonly DateTime EpochUtc = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
         #endregion
 
         internal class UserActionComparer : IComparer<string> {

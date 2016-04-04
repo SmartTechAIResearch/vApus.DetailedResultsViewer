@@ -213,7 +213,7 @@ namespace vApus.Results {
                             if (cancellationToken.IsCancellationRequested) loopState.Break();
 
                             List<string> sortedRequestIndices = requests.Keys.ToList();
-                            sortedRequestIndices.Sort(ResultsHelper.RequestIndexComparer.GetInstance());
+                            sortedRequestIndices.Sort();
 
                             lock (_lock)
                                 foreach (string s in sortedRequestIndices) {

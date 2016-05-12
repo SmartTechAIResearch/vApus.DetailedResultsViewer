@@ -41,7 +41,7 @@ namespace vApus.Results {
         /// <param name="columns"></param>
         /// <returns></returns>
         protected DataTable[] GetRequestResultsPerRunThreaded(DatabaseActions databaseActions, CancellationToken cancellationToken, DataTable runResults, int threads, params string[] columns) {
-            threads = 1;
+           // threads = 1;
             int runCount = runResults.Rows.Count;
 
             //Adaptive parallelization.
@@ -70,10 +70,10 @@ namespace vApus.Results {
             }
 
             var parts = new DataTable[runResultIds.Length];
-            //Parallel.For(0, runResultIds.Length, (i, loopState) => {
-            for (int i = 0; i != runResultIds.Length; i++)
+            Parallel.For(0, runResultIds.Length, (i, loopState) => {
+           // for (int i = 0; i != runResultIds.Length; i++)
                 using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 }) {
-                    //if (cancellationToken.IsCancellationRequested) loopState.Break();
+                   if (cancellationToken.IsCancellationRequested) loopState.Break();
                     try {
                         parts[i] = ReaderAndCombiner.GetRequestResults(cancellationToken, dba, runResultIds[i], columns);
                     }
@@ -81,7 +81,7 @@ namespace vApus.Results {
                         Loggers.Log(Level.Error, "Failed at getting a run result part.", ex, new object[] { threads, columns });
                     }
                 }
-            //});
+            });
             return parts;
         }
     }

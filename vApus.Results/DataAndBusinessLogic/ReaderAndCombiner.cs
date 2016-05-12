@@ -451,13 +451,13 @@ namespace vApus.Results {
                             if (runResultIdIndex != -1)
                                 itemArray[runResultIdIndex] = correctRunResultId;
 
-                            try {
+                           // try {
                                 if (virtualUserIndex != -1)
                                     itemArray[virtualUserIndex] = linkReplaceVirtualUsers[itemArray[virtualUserIndex] as string];
-                            }
-                            catch (Exception ex) {
+                          //  }
+                         //   catch (Exception ex) {
 
-                            }
+                        //    }
 
                             combinedRun.Rows.Add(itemArray);
                         }

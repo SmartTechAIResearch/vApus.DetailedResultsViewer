@@ -139,8 +139,12 @@ namespace vApus.DetailedResultsViewer {
                     if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
                         bool canAdd = true;
                         try {
-                            DataTable dt = databaseActions.GetDataTable("Select * from " + db + ".resultsreadystate;");
-                            if (dt.Rows.Count == 1) canAdd = (dt.Rows[0]["State"] as string == "Ready");
+                            DataTable dt = databaseActions.GetDataTable("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME IN ('resultsreadystate') AND TABLE_SCHEMA='" + db + "';");
+                            if (dt.Rows.Count != 0) {
+                                dt = databaseActions.GetDataTable("Select * from " + db + ".resultsreadystate;");
+                                if (dt.Rows.Count == 1)
+                                    canAdd = (dt.Rows[0]["State"] as string == "Ready");
+                            }
                         }
                         catch {
                             //support older dbs.

@@ -38,7 +38,7 @@ namespace vApus.Results {
             foreach (StressTestMetrics metrics in metricsDic.Keys) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                string measuredTime = metrics.MeasuredTime.TotalSeconds < 1d ? metrics.MeasuredTime.ToString("hh':'mm':'ss'.'fff") : metrics.MeasuredTime.ToString("hh':'mm':'ss");
+                string measuredTime = metrics.MeasuredTime.TotalSeconds < 1d ? metrics.MeasuredTime.ToString("hh':'mm':'ss'.'fff") : TimeSpan.FromSeconds(Math.Round(metrics.MeasuredTime.TotalSeconds, MidpointRounding.AwayFromZero)).ToString("hh':'mm':'ss");
                 averageConcurrencyResults.Rows.Add(metricsDic[metrics], metrics.StartMeasuringTime, measuredTime, Math.Round(metrics.MeasuredTime.TotalMilliseconds, MidpointRounding.AwayFromZero),
                     metrics.Concurrency, metrics.RequestsProcessed, metrics.Requests, metrics.Errors, Math.Round(metrics.ResponsesPerSecond, 2, MidpointRounding.AwayFromZero),
                     Math.Round(metrics.UserActionsPerSecond, 2, MidpointRounding.AwayFromZero), Math.Round(metrics.AverageResponseTime.TotalMilliseconds, MidpointRounding.AwayFromZero),

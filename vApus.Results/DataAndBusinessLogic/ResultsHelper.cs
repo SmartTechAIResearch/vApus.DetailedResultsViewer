@@ -1228,7 +1228,7 @@ namespace vApus.Results {
 
                         string concurrency = concurrencies[concurrencyId] == 0 ? "--" : concurrencies[concurrencyId].ToString();
 
-                        string measuredTime = measuredRunTime.TotalSeconds < 1d ? measuredRunTime.ToString("hh':'mm':'ss'.'fff") : measuredRunTime.ToString("hh':'mm':'ss");
+                        string measuredTime = measuredRunTime.TotalSeconds < 1d ? measuredRunTime.ToString("hh':'mm':'ss'.'fff") : TimeSpan.FromSeconds(Math.Round(measuredRunTime.TotalSeconds, MidpointRounding.AwayFromZero)).ToString("hh':'mm':'ss");
                         var newRow = new List<object>(new object[] { stressTest, monitor, startedAt, measuredTime, Math.Round(measuredRunTime.TotalMilliseconds, MidpointRounding.AwayFromZero), concurrency });
 
                         var fragmentedAverages = new object[resultHeaders.Count];

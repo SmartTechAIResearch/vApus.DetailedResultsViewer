@@ -358,7 +358,7 @@ namespace vApus.Results {
 
                 //No need for the where if all run result ids are selected.
                 DataTable runResults = databaseActions.GetDataTable("Select count(*) from runresults;");
-                if((long)runResults.Rows[0].ItemArray[0] == runResultIds.LongLength)
+                if ((long)runResults.Rows[0].ItemArray[0] == runResultIds.LongLength)
                     return databaseActions.GetDataTable(string.Format("Select {0} From requestresults{1};", GetValidSelect(selectColumns), GetValidWhere(where, true)));
 
                 return databaseActions.GetDataTable(string.Format("Select {0} From requestresults Where RunResultId In({1}){2};", GetValidSelect(selectColumns), runResultIds.Combine(", "), GetValidWhere(where, false)));
@@ -451,13 +451,12 @@ namespace vApus.Results {
                             if (runResultIdIndex != -1)
                                 itemArray[runResultIdIndex] = correctRunResultId;
 
-                           // try {
-                                if (virtualUserIndex != -1)
-                                    itemArray[virtualUserIndex] = linkReplaceVirtualUsers[itemArray[virtualUserIndex] as string];
-                          //  }
-                         //   catch (Exception ex) {
 
-                        //    }
+                            if (virtualUserIndex != -1) {
+                                string virtualUser = itemArray[virtualUserIndex] as string;
+                                if (linkReplaceVirtualUsers.ContainsKey(virtualUser))
+                                    itemArray[virtualUserIndex] = linkReplaceVirtualUsers[virtualUser];
+                            }
 
                             combinedRun.Rows.Add(itemArray);
                         }
@@ -487,7 +486,8 @@ namespace vApus.Results {
             if (databaseActions != null) {
                 if (stressTestIds.Length == 0) {
                     combined = databaseActions.GetDataTable(string.Format("Select {0} From monitors{1};", GetValidSelect(selectColumns), GetValidWhere(where, true)));
-                } else {
+                }
+                else {
                     stressTestIds = GetStressTestIdsAndSiblings(cancellationToken, databaseActions, stressTestIds);
                     if (cancellationToken.IsCancellationRequested) return null;
 
@@ -550,7 +550,8 @@ namespace vApus.Results {
 
                 if (stressTestIds.Length == 0) {
                     dt = databaseActions.GetDataTable(string.Format("Select {0} From stresstests;", select));
-                } else {
+                }
+                else {
                     stressTestIds = GetStressTestIdsAndSiblings(cancellationToken, databaseActions, stressTestIds);
                     if (cancellationToken.IsCancellationRequested) return null;
 
@@ -580,7 +581,8 @@ namespace vApus.Results {
                 DataTable dt = null;
                 if (stressTestIds.Length == 0) {
                     dt = databaseActions.GetDataTable("Select Id, StressTest From stresstests;");
-                } else {
+                }
+                else {
                     stressTestIds = GetStressTestIdsAndSiblings(cancellationToken, databaseActions, stressTestIds);
                     if (cancellationToken.IsCancellationRequested) return null;
 
@@ -639,7 +641,8 @@ namespace vApus.Results {
                     dt = databaseActions.GetDataTable(
                         string.Format("Select {0} From concurrencyresults{1};", GetValidSelect(selectColumns),
                         GetValidWhere(where, true)));
-                } else {
+                }
+                else {
                     stressTestResultIds = GetStressTestResultIdsAndSiblings(cancellationToken, databaseActions, stressTestResultIds);
                     if (cancellationToken.IsCancellationRequested) return null;
 
@@ -694,7 +697,8 @@ namespace vApus.Results {
                     dt = databaseActions.GetDataTable(
                         string.Format("Select {0} From runresults{1} Order By TotalRequestCount Desc;", GetValidSelect(selectColumns),
                         GetValidWhere(where, true)));
-                } else {
+                }
+                else {
                     concurrencyResultIds = GetConcurrencyResultIdsAndSiblings(cancellationToken, databaseActions, concurrencyResultIds);
                     if (cancellationToken.IsCancellationRequested) return null;
 
@@ -765,7 +769,8 @@ namespace vApus.Results {
                     dict[stressTest].Add(dt);
 
                     if (dict[stressTest].Count == 0) dict.Remove(stressTest);
-                } else {
+                }
+                else {
 
                     DataRow[] allRows = dt.Select();
                     foreach (string stressTest in dictStressTestRunResults.Keys) {
@@ -975,7 +980,8 @@ namespace vApus.Results {
         private static string GetValidWhere(string where, bool mustStartWithWhere) {
             if (where == null) {
                 where = string.Empty;
-            } else {
+            }
+            else {
                 where = where.Trim();
                 if (!mustStartWithWhere && where.StartsWith("where", StringComparison.InvariantCultureIgnoreCase))
                     where = where.Substring(5);
@@ -987,7 +993,7 @@ namespace vApus.Results {
             }
             return where;
         }
-        
+
         private static List<List<object[]>> Pivot(CancellationToken cancellationToken, List<DataTable> dt) {
             int count = dt.Count;
 

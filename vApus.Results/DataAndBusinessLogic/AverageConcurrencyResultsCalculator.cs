@@ -223,7 +223,10 @@ namespace vApus.Results {
                                         virtualUserResults.TryAdd(item.Key, new VirtualUserResult(requestResults[item.Key].Count) { VirtualUser = item.Key });
                                         VirtualUserResult virtualUserResult = virtualUserResults[item.Key];
 
-                                        virtualUserResult.RequestResults = item.Value.Values.OrderBy(x => x.SentAt).ToArray();
+                                        virtualUserResult.RequestResults = item.Value.Values.OrderBy(x => {
+                                            if (x == null) return DateTime.MaxValue;
+                                            return x.SentAt; //.AddTicks(x.TimeToLastByteInTicks);
+                                        }).ToArray();
                                     }
                                     );
                                     runResult.VirtualUserResults = virtualUserResults.Values.ToArray();

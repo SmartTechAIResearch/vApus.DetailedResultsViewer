@@ -1143,7 +1143,7 @@ namespace vApus.Results {
                     var firstConcurrency = runDelimiters.First().Value;
                     foreach (var firstStart in firstConcurrency.Keys) {
                         var bogusStop = firstStart.Subtract(new TimeSpan(TimeSpan.TicksPerMillisecond));
-                        var bogusStart = bogusStop.Subtract(new TimeSpan(monitorAfterInMinutes * TimeSpan.TicksPerMinute));
+                        var bogusStart = bogusStop.Subtract(new TimeSpan(monitorBeforeInMinutes * TimeSpan.TicksPerMinute));
                         var monitorBeforeBogusRuns = new Dictionary<DateTime, DateTime>(0);
                         monitorBeforeBogusRuns.Add(bogusStart, bogusStop);
                         newRunDelimiters.Add(0, monitorBeforeBogusRuns);

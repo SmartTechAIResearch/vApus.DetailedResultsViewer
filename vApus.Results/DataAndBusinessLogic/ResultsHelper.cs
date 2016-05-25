@@ -1125,14 +1125,17 @@ namespace vApus.Results {
                     int i = 0;
                     foreach (var lastStop in lastConcurrency.Values)
                         if (i++ == lastConcurrency.Count - 1) {
-                            var bogusStart = lastStop.AddMilliseconds(1);
-                            var bogusStop = bogusStart.AddMinutes(monitorAfterInMinutes);
-                            var monitorAfterBogusRuns = new Dictionary<DateTime, DateTime>(0);
-                            monitorAfterBogusRuns.Add(bogusStart, bogusStop);
                             int concurrencyId = lastConcurrencyID + 1;
-                            runDelimiters.Add(concurrencyId, monitorAfterBogusRuns);
-                            concurrencyDelimiters.Add(concurrencyId, new KeyValuePair<DateTime, DateTime>(bogusStart, bogusStop));
-                            concurrencies.Add(concurrencyId, 0);
+                            if (!concurrencyDelimiters.ContainsKey(concurrencyId)) { //Check if the test was cancelled or not.
+                                var bogusStart = lastStop.AddMilliseconds(1);
+                                var bogusStop = bogusStart.AddMinutes(monitorAfterInMinutes);
+                                var monitorAfterBogusRuns = new Dictionary<DateTime, DateTime>(0);
+                                monitorAfterBogusRuns.Add(bogusStart, bogusStop);
+
+                                runDelimiters.Add(concurrencyId, monitorAfterBogusRuns);
+                                concurrencyDelimiters.Add(concurrencyId, new KeyValuePair<DateTime, DateTime>(bogusStart, bogusStop));
+                                concurrencies.Add(concurrencyId, 0);
+                            }
                         }
                 }
                 if (monitorBeforeInMinutes != 0 && runDelimiters.Count != 0) {

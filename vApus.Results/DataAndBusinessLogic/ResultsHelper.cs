@@ -53,16 +53,19 @@ namespace vApus.Results {
                     _databaseActions.ExecuteSQL("DELETE FROM description");
                     _databaseActions.ExecuteSQL("DELETE FROM tags");
 
-                    _databaseActions.ExecuteSQL("INSERT INTO description(Description) VALUES('" + description + "')");
-                    var rowsToInsert = new List<string>(); //Insert multiple values at once.
+                    if (!string.IsNullOrEmpty(description))
+                        _databaseActions.ExecuteSQL("INSERT INTO description(Description) VALUES('" + description + "')");
 
-                    foreach (string tag in tags) {
-                        var sb = new StringBuilder("('");
-                        sb.Append(tag.ToLowerInvariant());
-                        sb.Append("')");
-                        rowsToInsert.Add(sb.ToString());
+                    if (tags.Length != 0) {
+                        var rowsToInsert = new List<string>(); //Insert multiple values at once.
+                        foreach (string tag in tags) {
+                            var sb = new StringBuilder("('");
+                            sb.Append(tag.ToLowerInvariant());
+                            sb.Append("')");
+                            rowsToInsert.Add(sb.ToString());
+                        }
+                        _databaseActions.ExecuteSQL(string.Format("INSERT INTO tags(Tag) VALUES {0};", rowsToInsert.Combine(", ")));
                     }
-                    _databaseActions.ExecuteSQL(string.Format("INSERT INTO tags(Tag) VALUES {0};", rowsToInsert.Combine(", ")));
                 }
             }
         }
@@ -349,9 +352,6 @@ namespace vApus.Results {
 
             DataTable overview = CreateEmptyDataTable("Overview", "Stress test", "Concurrency");
             int range = 0; //The range of values (avg response times) to place under the right user action
-            char colon = ':';
-            string sColon = ":";
-            int userActionIndex = 1;
             int currentConcurrencyResultId = -1;
             var objectType = typeof(object);
 
@@ -361,16 +361,11 @@ namespace vApus.Results {
                 if (cancellationToken.IsCancellationRequested) return null;
 
                 int concurrencyResultId = (int)uaRow.ItemArray[1];
-                if (currentConcurrencyResultId != concurrencyResultId) {
-                    userActionIndex = 1; //Do not forget to reset this, otherwise we will only get one row.
-                    currentConcurrencyResultId = concurrencyResultId;
-                }
+                if (currentConcurrencyResultId != concurrencyResultId) currentConcurrencyResultId = concurrencyResultId;
 
-                string userAction = uaRow.ItemArray[3] as string;
+
+                string userAction = (uaRow.ItemArray[3] as string).Substring("Scenario ".Length).Replace("User action", "-");
                 if (userActions.Add(userAction)) {
-                    string[] splittedUserAction = userAction.Split(colon);
-                    userAction = string.Join(sColon, userActionIndex++, splittedUserAction[splittedUserAction.Length - 1]);
-
                     overview.Columns.Add(userAction, objectType);
                     range++;
                 }

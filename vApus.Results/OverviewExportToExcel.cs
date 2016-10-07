@@ -89,6 +89,7 @@ namespace vApus.Results {
 
                     if (avgConcurrencyResults.Rows.Count == 0) continue;
                     avgConcurrencyResults.Columns.Remove("Stress test");
+                    avgConcurrencyResults.Columns.Remove("Id");
 
                     List<KeyValuePair<string, string>> configuration = resultsHelper.GetStressTestConfigurations(stressTestId);
 

@@ -23,6 +23,7 @@ namespace vApus.Results {
         /// <returns></returns>
         public static StressTestMetrics GetMetrics(ConcurrencyResult result, CancellationToken cancellationToken) {
             var metrics = new StressTestMetrics();
+            metrics.Id = result.ConcurrencyId;
             metrics.StartMeasuringTime = result.StartedAt;
             metrics.MeasuredTime = (result.StoppedAt == DateTime.MinValue ? DateTime.Now : result.StoppedAt) - metrics.StartMeasuringTime;
             metrics.Concurrency = result.Concurrency;
@@ -104,8 +105,9 @@ namespace vApus.Results {
         /// </summary>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static StressTestMetrics GetMetrics(RunResult result, CancellationToken cancellationToken, bool includePercentiles = true) {
+        private static StressTestMetrics GetMetrics(RunResult result, CancellationToken cancellationToken, bool includePercentiles = true) {
             var metrics = new StressTestMetrics();
+            metrics.Id = result.ConcurrencyId;
             metrics.StartMeasuringTime = result.StartedAt;
             metrics.MeasuredTime = (result.StoppedAt == DateTime.MinValue ? DateTime.Now : result.StoppedAt) - metrics.StartMeasuringTime;
             metrics.Concurrency = result.VirtualUserResults.Length;
@@ -177,7 +179,7 @@ namespace vApus.Results {
         /// <returns></returns>
         private static StressTestMetrics GetMetrics(VirtualUserResult result, CancellationToken cancellationToken) {
             var metrics = new StressTestMetrics();
-
+            metrics.Id = -1;
             metrics.MaxResponseTime = new TimeSpan();
             metrics.Requests = result.RequestResults.LongLength;
 

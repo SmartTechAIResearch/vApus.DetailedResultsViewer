@@ -22,6 +22,7 @@ namespace vApus.Results {
         #endregion
 
         #region Properties
+        public int Id { get; set; }
         public DateTime StartMeasuringTime { get; set; }
         public TimeSpan EstimatedTimeLeft { get; set; }
         /// <summary>
@@ -81,6 +82,7 @@ namespace vApus.Results {
         public StressTestMetrics(SerializationInfo info, StreamingContext ctxt) {
             SerializationReader sr;
             using (sr = SerializationReader.GetReader(info)) {
+                Id = sr.ReadInt32();
                 StartMeasuringTime = sr.ReadDateTime();
                 EstimatedTimeLeft = sr.ReadTimeSpan();
                 MeasuredTime = sr.ReadTimeSpan();
@@ -110,6 +112,7 @@ namespace vApus.Results {
         public void GetObjectData(SerializationInfo info, StreamingContext context) {
             SerializationWriter sw;
             using (sw = SerializationWriter.GetWriter()) {
+                sw.Write(Id);
                 sw.Write(StartMeasuringTime);
                 sw.Write(EstimatedTimeLeft);
                 sw.Write(MeasuredTime);

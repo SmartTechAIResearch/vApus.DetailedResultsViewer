@@ -15,6 +15,7 @@ using System.Drawing;
 using System.IO;
 using System.IO.Packaging;
 using System.Threading;
+using System.Web;
 using System.Windows.Forms;
 using vApus.Util;
 
@@ -772,7 +773,7 @@ namespace vApus.Results {
         /// <param name="setDataSeriesColors">Where available</param>
         /// <param name="dataSeriesColors">Default (_colorPalette) used if null</param>
         /// <returns></returns>
-        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, string secondaryYAxis, 
+        private static SLChart AddChart(SLDocument doc, int rangeWidth, int rangeHeight, string title, string xAxis, string yAxis, string secondaryYAxis,
             ChartType type, ChartLocation location = ChartLocation.RightOfData, bool setDataSeriesColors = false, List<Color> dataSeriesColors = null,
             bool showXLabels = true, bool showMinorGridLines = true) {
             SLChart chart = doc.CreateChart(1, 1, rangeHeight, rangeWidth, new SLCreateChartOptions() { RowsAsDataSeries = false, ShowHiddenData = false });
@@ -911,9 +912,9 @@ namespace vApus.Results {
         #endregion
 
         private static void AddFileToZip(string zipFilename, string fileToAdd, CompressionOption compressionOption = CompressionOption.Normal) {
-            using (Package zip = System.IO.Packaging.Package.Open(zipFilename, FileMode.OpenOrCreate)) {
+            using (Package zip = Package.Open(zipFilename, FileMode.OpenOrCreate)) {
                 string destFilename = ".\\" + Path.GetFileName(fileToAdd);
-                Uri uri = PackUriHelper.CreatePartUri(new Uri(destFilename, UriKind.Relative));
+                Uri uri = PackUriHelper.CreatePartUri(new Uri(HttpUtility.UrlEncode(destFilename), UriKind.Relative));
                 if (zip.PartExists(uri))
                     zip.DeletePart(uri);
 

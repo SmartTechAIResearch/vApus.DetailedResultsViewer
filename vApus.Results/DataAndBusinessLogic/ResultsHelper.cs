@@ -351,44 +351,54 @@ namespace vApus.Results {
             if (averageConcurrentUsers == null) return null;
 
             DataTable overview = CreateEmptyDataTable("Overview", "Stress test", "Concurrency");
-            int range = 0; //The range of values (avg response times) to place under the right user action
-            int currentConcurrencyResultId = -1;
             var objectType = typeof(object);
 
-            var userActions = new HashSet<string>(); //To determine if a new column must be added or not.
+            var userActions = new List<string>(); //To determine if a new column must be added or not and keep the ranges correctly.
+            var rowsPerConcurrencyPerUserAction = new Dictionary<int, Dictionary<string, DataRow>>();
 
             foreach (DataRow uaRow in averageUserActions.Rows) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
                 int concurrencyResultId = (int)uaRow.ItemArray[1];
-                if (currentConcurrencyResultId != concurrencyResultId) currentConcurrencyResultId = concurrencyResultId;
+                string userAction = uaRow.ItemArray[3] as string;
 
+                if (!rowsPerConcurrencyPerUserAction.ContainsKey(concurrencyResultId)) rowsPerConcurrencyPerUserAction.Add(concurrencyResultId, new Dictionary<string, DataRow>());
 
-                string userAction = (uaRow.ItemArray[3] as string).Substring("Scenario ".Length).Replace("User action", "-");
-                if (userActions.Add(userAction)) {
+                rowsPerConcurrencyPerUserAction[concurrencyResultId].Add(userAction, uaRow);
+
+                if (!userActions.Contains(userAction)) {
+                    userActions.Add(userAction);
+
+                    userAction = userAction.Substring("Scenario ".Length).Replace("User action", "-");
                     overview.Columns.Add(userAction, objectType);
-                    range++;
                 }
             }
             overview.Columns.Add("Throughput", objectType);
             overview.Columns.Add("User actions / s", objectType);
             overview.Columns.Add("Errors", objectType);
 
-            for (int offset = 0; offset < averageUserActions.Rows.Count; offset += range) {
+            //Make sure the ranges are all the same length. Whole can appear in case of break on first / last.
+            foreach (int concurrency in rowsPerConcurrencyPerUserAction.Keys) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                var row = new List<object>(range + 3);
-                row.Add(averageUserActions.Rows[offset].ItemArray[0]); //Add stress test
-                row.Add(averageUserActions.Rows[offset].ItemArray[2]); //Add concurrency
-                for (int i = offset; i != offset + range; i++) { //Add the response times
+                var uaRowsDic = rowsPerConcurrencyPerUserAction[concurrency];
+
+                var row = new List<object>(userActions.Count + 3);
+
+                row.Add(uaRowsDic.First().Value.ItemArray[0]); //Add stress test
+                row.Add(concurrency); //Add concurrency
+
+                foreach (string userAction in userActions) {//Add the response times
                     if (cancellationToken.IsCancellationRequested) return null;
 
-                    row.Add(i < averageUserActions.Rows.Count ? Convert.ToDouble(averageUserActions.Rows[i][responseTimeColumn]) : 0d);
+                    row.Add(uaRowsDic.ContainsKey(userAction) ? Convert.ToDouble(uaRowsDic[userAction][responseTimeColumn]) : 0d);
                 }
+                
                 row.Add(averageConcurrentUsers.Rows[overview.Rows.Count]["Throughput (responses / s)"]); //And the throughput
                 row.Add(averageConcurrentUsers.Rows[overview.Rows.Count]["User actions / s"]); //And the throughput
                 row.Add(averageConcurrentUsers.Rows[overview.Rows.Count]["Errors"]); //And the errors: Bonus
                 overview.Rows.Add(row.ToArray());
+
             }
 
             return overview;

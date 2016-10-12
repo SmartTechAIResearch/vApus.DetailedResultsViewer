@@ -306,8 +306,7 @@ namespace vApus.Results {
                     object[] arr = row.ItemArray;
                     for (int i = 0; i != arr.Length; i++)
                         if (arr[i] is string) {
-                            string s = arr[i] as string;
-                            s = s.Replace("<16 0C 02 12$>", "•");
+                            string s = (arr[i] as string).Replace("<16 0C 02 12$>", "•");
                             arr[i] = s;
 
                             int extraColumns = s.Length / 32767; // Excel cell limit;

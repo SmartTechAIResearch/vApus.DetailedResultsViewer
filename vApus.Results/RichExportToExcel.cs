@@ -724,8 +724,12 @@ namespace vApus.Results {
                 foreach (DataRow row in copy.Rows) {
                     object[] arr = row.ItemArray;
                     for (int i = 0; i != arr.Length; i++)
-                        if (arr[i] is string)
-                            arr[i] = (arr[i] as string).Replace("<16 0C 02 12$>", "•");
+                        if (arr[i] is string) {
+                            string s = (arr[i] as string).Replace("<16 0C 02 12$>", "•");
+                            if (s.Length > 32767) s = s.Substring(0, 32764) + "..."; //Max cell length.
+                            arr[i] = s;
+                            
+                        }
 
                     clone.Rows.Add(arr);
                 }

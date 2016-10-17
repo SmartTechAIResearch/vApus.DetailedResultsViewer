@@ -378,15 +378,16 @@ namespace vApus.Results {
             overview.Columns.Add("Errors", objectType);
 
             //Make sure the ranges are all the same length. Whole can appear in case of break on first / last.
-            foreach (int concurrency in rowsPerConcurrencyPerUserAction.Keys) {
+            foreach (int concurrencyId in rowsPerConcurrencyPerUserAction.Keys) {
                 if (cancellationToken.IsCancellationRequested) return null;
 
-                var uaRowsDic = rowsPerConcurrencyPerUserAction[concurrency];
+                var uaRowsDic = rowsPerConcurrencyPerUserAction[concurrencyId];
 
                 var row = new List<object>(userActions.Count + 3);
+                var first = uaRowsDic.First().Value;
 
-                row.Add(uaRowsDic.First().Value.ItemArray[0]); //Add stress test
-                row.Add(concurrency); //Add concurrency
+                row.Add(first.ItemArray[0]); //Add stress test
+                row.Add(first["Concurrency"]); //Add concurrency
 
                 foreach (string userAction in userActions) {//Add the response times
                     if (cancellationToken.IsCancellationRequested) return null;

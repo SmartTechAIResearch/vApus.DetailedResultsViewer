@@ -92,7 +92,7 @@ namespace vApus.Results {
 
             _toExport.Add("Monitor data'/'*", MonitorData);
 
-            _toExport.Add("Specialized'/'Export meta results if any (currently only WebPageTest)", Meta);
+            _toExport.Add("Specialized'/'Export meta results if any (Only WebPageTest and HTTP(s))", Meta);
             _toExport.Add("Specialized'/'Response time distribution'/'for requests per concurrency", SpecializedResponseTimeDistributionForRequestsPerConcurrency);
             _toExport.Add("Specialized'/'Response time distribution'/'for user actions per concurrency", SpecializedResponseTimeDistributionForUserActionsPerConcurrency);
         }
@@ -474,44 +474,75 @@ namespace vApus.Results {
 
         private static string Meta(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable metaDt = resultsHelper.GetMeta(token, stressTestId);
+
+            foreach (DataRow row in metaDt.Rows) {
+                dynamic data = JObject.Parse(row["Meta"] as string);
+                if (data.type == "WebPageTest")
+                    return WPTMeta(dataset, doc, metaDt, resultsHelper, token);
+                else if (data.type == "HTTP(s)")
+                    return HttpsMeta(dataset, doc, metaDt, resultsHelper, token);
+            }
+
+            return null;
+        }
+        private static string WPTMeta(string dataset, SLDocument doc, DataTable metaDt, ResultsHelper resultsHelper, CancellationToken token) {
             string firstWorksheet = null;
+
+            var colorPalette = new List<Color>(7);
+
+            colorPalette.Add(Color.FromArgb(255, 255, 255));
+            colorPalette.Add(Color.FromArgb(50, 85, 126));
+            colorPalette.Add(Color.FromArgb(128, 51, 49));
+            colorPalette.Add(Color.FromArgb(103, 125, 57));
+            colorPalette.Add(Color.FromArgb(84, 65, 107));
+            colorPalette.Add(Color.FromArgb(47, 114, 132));
+            colorPalette.Add(Color.FromArgb(166, 99, 44));
 
             int i = 0;
             foreach (DataRow row in metaDt.Rows) {
                 dynamic data = JObject.Parse(row["Meta"] as string);
-                if (data.type == "WebPageTest") {
-                    var colorPalette = new List<Color>(7);
 
-                    colorPalette.Add(Color.FromArgb(255, 255, 255));
-                    colorPalette.Add(Color.FromArgb(50, 85, 126));
-                    colorPalette.Add(Color.FromArgb(128, 51, 49));
-                    colorPalette.Add(Color.FromArgb(103, 125, 57));
-                    colorPalette.Add(Color.FromArgb(84, 65, 107));
-                    colorPalette.Add(Color.FromArgb(47, 114, 132));
-                    colorPalette.Add(Color.FromArgb(166, 99, 44));
+                DataTable dt;
+                string worksheet = CreateWaterfallWorksheet(doc, data.requests, "W " + (++i), out dt);
+                AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
+                CreateWaterfallWorksheet(doc, data.cachedRequests, "W " + i + " cached", out dt);
+                AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall cached (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
 
-                    DataTable dt;
-                    string worksheet = CreateWaterfallWorksheet(doc, data.requests, "W " + (++i), out dt);
-                    AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
-                    CreateWaterfallWorksheet(doc, data.cachedRequests, "W " + i + " cached", out dt);
-                    AddChart(doc, dt.Columns.Count - 1, dt.Rows.Count + 1, "Waterfall cached (ms)", string.Empty, string.Empty, ChartType.StackedBar, ChartLocation.BelowData, true, colorPalette);
+                CreateCpuUtilizationWorkSheet(doc, data.utilization, "CPU " + i, out dt);
+                AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
+                CreateCpuUtilizationWorkSheet(doc, data.cachedUtilization, "CPU " + i + " cached", out dt);
+                AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU cached (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
 
-                    CreateCpuUtilizationWorkSheet(doc, data.utilization, "CPU " + i, out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
-                    CreateCpuUtilizationWorkSheet(doc, data.cachedUtilization, "CPU " + i + " cached", out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "CPU cached (%)", string.Empty, string.Empty, ChartType.PercentLine, ChartLocation.RightOfData, false, null, false, false);
+                CreateBandwidthUtilizationWorkSheet(doc, data.utilization, "B " + i, out dt);
+                AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
+                CreateBandwidthUtilizationWorkSheet(doc, data.cachedUtilization, "B " + i + " cached", out dt);
+                AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth cached (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
 
-                    CreateBandwidthUtilizationWorkSheet(doc, data.utilization, "B " + i, out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
-                    CreateBandwidthUtilizationWorkSheet(doc, data.cachedUtilization, "B " + i + " cached", out dt);
-                    AddChart(doc, dt.Columns.Count, dt.Rows.Count + 1, "Bandwidth cached (Mbps)", string.Empty, string.Empty, ChartType.Line, ChartLocation.RightOfData, false, null, false, false);
-
-                    if (firstWorksheet == null) firstWorksheet = worksheet;
-                }
+                if (firstWorksheet == null) firstWorksheet = worksheet;
             }
 
             return firstWorksheet;
         }
+
+        private static string HttpsMeta(string dataset, SLDocument doc, DataTable metaDt, ResultsHelper resultsHelper, CancellationToken token) {
+            DataTable httpsDt = CreateEmptyDataTable("Meta", "User action", "Request", "Request content length (KiB)", "Response content length (KiB)", "Encoding");
+
+            var requests = new HashSet<string>();
+
+            foreach (DataRow row in metaDt.Rows) {
+                string request = row["Request"] as string;
+                if (requests.Add(request)) {
+                    request = request.Replace("<16 0C 02 12$>", "•");
+                    if (request.Length > 32767) request = request.Substring(0, 32764) + "..."; //Max cell length.
+
+                    dynamic data = JObject.Parse(row["Meta"] as string);
+                    httpsDt.Rows.Add(row["User action"] as string, request, (double)data.requestContentLengthInKiB, (double)data.responseContentLengthInKiB, (string)data.encoding);
+                }
+            }
+
+            return MakeWorksheet(doc, httpsDt, "Meta", false, true);
+        }
+
 
         private static string CreateWaterfallWorksheet(SLDocument doc, JArray requests, string title, out DataTable dt) {
             dt = CreateEmptyDataTable("Waterfall", "Url", "empty", "DNS", "Connect", "SSL", "Time to first byte", "Time to last byte", "Socket ID");
@@ -728,7 +759,7 @@ namespace vApus.Results {
                             string s = (arr[i] as string).Replace("<16 0C 02 12$>", "•");
                             if (s.Length > 32767) s = s.Substring(0, 32764) + "..."; //Max cell length.
                             arr[i] = s;
-                            
+
                         }
 
                     clone.Rows.Add(arr);

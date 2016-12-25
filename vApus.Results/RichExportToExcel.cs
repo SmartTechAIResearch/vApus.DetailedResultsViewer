@@ -525,7 +525,7 @@ namespace vApus.Results {
         }
 
         private static string HttpsMeta(string dataset, SLDocument doc, DataTable metaDt, ResultsHelper resultsHelper, CancellationToken token) {
-            DataTable httpsDt = CreateEmptyDataTable("Meta", "User action", "Request", "Request content length (KiB)", "Response content length (KiB)", "Encoding", "Response length (KiB)");
+            DataTable httpsDt = CreateEmptyDataTable("Meta", "User action", "Request", "Request content length (KiB)", "Response content length (KiB)", "Encoding", "Uncompressed total response length (KiB)");
 
             var requests = new HashSet<string>();
 
@@ -536,7 +536,7 @@ namespace vApus.Results {
                     if (request.Length > 32767) request = request.Substring(0, 32764) + "..."; //Max cell length.
 
                     dynamic data = JObject.Parse(row["Meta"] as string);
-                    httpsDt.Rows.Add(row["User action"] as string, request, (double)data.requestContentLengthInKiB, (double)data.responseContentLengthInKiB, (string)data.encoding, (double)data.responseLengthInKiB);
+                    httpsDt.Rows.Add(row["User action"] as string, request, (double)data.requestContentLengthInKiB, (double)data.responseContentLengthInKiB, (string)data.encoding, (double)data.uncompressedTotalResponseLengthInKiB);
                 }
             }
 

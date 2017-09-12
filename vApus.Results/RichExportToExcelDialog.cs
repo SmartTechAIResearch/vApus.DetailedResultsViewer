@@ -269,6 +269,9 @@ namespace vApus.Results {
             if (string.IsNullOrWhiteSpace(fileName)) {
                 fileName = _resultsHelper.DatabaseName;
             }
+            else {
+                fileName = fileName.Split('\n')[0].Split('\r')[0].Trim();
+            }
 
             saveFileDialog.FileName = Path.Combine(autoExportFolder, fileName.ReplaceInvalidWindowsFilenameChars('_'));
             if (autoExportFolder.Length != 0 || saveFileDialog.ShowDialog() == DialogResult.OK) {

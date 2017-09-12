@@ -265,7 +265,12 @@ namespace vApus.Results {
         private void btnExportToExcel_Click(object sender, EventArgs e) { Export(); }
 
         async private void Export(string autoExportFolder = "") {
-            saveFileDialog.FileName = Path.Combine(autoExportFolder, _resultsHelper.DatabaseName.ReplaceInvalidWindowsFilenameChars('_'));
+            string fileName = _resultsHelper.GetDescription();
+            if (string.IsNullOrWhiteSpace(fileName)) {
+                fileName = _resultsHelper.DatabaseName;
+            }
+
+            saveFileDialog.FileName = Path.Combine(autoExportFolder, fileName.ReplaceInvalidWindowsFilenameChars('_'));
             if (autoExportFolder.Length != 0 || saveFileDialog.ShowDialog() == DialogResult.OK) {
                 btnExportToExcel.Enabled = btnOverviewExport.Enabled = cboStressTest.Enabled = tvw.Enabled = false;
                 btnExportToExcel.Text = "Exporting...";

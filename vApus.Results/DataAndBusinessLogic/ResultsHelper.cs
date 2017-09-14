@@ -763,7 +763,7 @@ namespace vApus.Results {
 
                                     foreach (DataRow ldr in requestResults.Rows) {
                                         if (cancellationToken.IsCancellationRequested) return null;
-                                        errors.Rows.Add(stressTest, new DateTime((EpochUtc.Ticks + (long)ldr["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc), concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Error"]);
+                                        errors.Rows.Add(stressTest, new DateTime((EpochUtc.Ticks + (long)ldr["SentAtInTicksSinceEpochUtc"]), DateTimeKind.Utc).ToLocalTime(), concurrency, run, ldr["VirtualUser"], ldr["UserAction"], ldr["Request"], ldr["Error"]);
                                     }
                                 }
                             }

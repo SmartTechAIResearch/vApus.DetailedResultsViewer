@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vApus.Util;
 using System.Linq;
+using RandomUtils;
 
 namespace vApus.Results {
     internal sealed class ResponseTimeDistributionForRequestsPerConcurrencyCalculator : BaseResultSetCalculator {
@@ -23,8 +24,8 @@ namespace vApus.Results {
 
         private ResponseTimeDistributionForRequestsPerConcurrencyCalculator() { }
 
-        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
-            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, stressTestIds);
+        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
+            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, functionOutputCache, stressTestIds);
             if (cancellationToken.IsCancellationRequested) return null;
 
             DataTable results = GetResults(data, cancellationToken);
@@ -38,7 +39,7 @@ namespace vApus.Results {
             return results;
         }
 
-        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
+        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
             var data = new ConcurrentDictionary<string, DataTable>();
 
             data.TryAdd("stresstests", ReaderAndCombiner.GetStressTests(cancellationToken, databaseActions, stressTestIds, "Id", "StressTest", "Connection"));
@@ -67,7 +68,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, "Id", "TimeToLastByteInTicks", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, functionOutputCache, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "SameAsRequestIndex", "RequestIndex", "Request", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);
@@ -164,8 +165,8 @@ namespace vApus.Results {
 
         private ResponseTimeDistributionForUserActionsPerConcurrencyCalculator() { }
 
-        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
-            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, stressTestIds);
+        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
+            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, functionOutputCache, stressTestIds);
             if (cancellationToken.IsCancellationRequested) return null;
 
             DataTable results = GetResults(data, cancellationToken);
@@ -180,7 +181,7 @@ namespace vApus.Results {
             return results;
         }
 
-        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
+        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
             var data = new ConcurrentDictionary<string, DataTable>();
 
             data.TryAdd("stresstests", ReaderAndCombiner.GetStressTests(cancellationToken, databaseActions, stressTestIds, "Id", "StressTest", "Connection"));
@@ -209,7 +210,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, functionOutputCache, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "SameAsRequestIndex", "RequestIndex", "Request", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);

@@ -5,6 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
+using RandomUtils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -19,12 +20,12 @@ namespace vApus.Results {
         private static AverageConcurrencyResultsCalculator _instance = new AverageConcurrencyResultsCalculator();
         public static AverageConcurrencyResultsCalculator GetInstance() { return _instance; }
         private AverageConcurrencyResultsCalculator() { }
-        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
+        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
             DataTable averageConcurrencyResults = CreateEmptyDataTable("AverageConcurrencyResults", "Stress test", "Id", "Started at", "Measured time", "Measured time (ms)", "Concurrency",
 "Requests processed", "Requests", "Errors", "Throughput (responses / s)", "User actions / s", "Avg. response time (ms)",
 "Max. response time (ms)", "95th percentile of the response times (ms)", "99th percentile of the response times (ms)", "Avg. top 5 response Times (ms)", "Avg. delay (ms)");
 
-            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, stressTestIds);
+            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, functionOutputCache, stressTestIds);
             if (cancellationToken.IsCancellationRequested) return null;
 
             ConcurrentDictionary<ConcurrencyResult, string> results = GetResults(data, cancellationToken);
@@ -54,7 +55,7 @@ namespace vApus.Results {
         }
 
         //Get all data from the database to be processed later.
-        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
+        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
             var data = new ConcurrentDictionary<string, DataTable>();
 
             data.TryAdd("stresstests", ReaderAndCombiner.GetStressTests(cancellationToken, databaseActions, stressTestIds, "Id", "StressTest", "Connection", "Runs"));
@@ -83,7 +84,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, "Id", "VirtualUser", "UserAction", "RequestIndex", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, functionOutputCache, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "SameAsRequestIndex", "RequestIndex", "Request", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);

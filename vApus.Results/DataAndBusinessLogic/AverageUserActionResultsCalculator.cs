@@ -5,6 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
+using RandomUtils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -20,8 +21,8 @@ namespace vApus.Results {
         public static AverageUserActionResultsCalculator GetInstance() { return _instance; }
         private AverageUserActionResultsCalculator() { }
 
-        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
-            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, stressTestIds);
+        public override DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
+            ConcurrentDictionary<string, DataTable> data = GetData(databaseActions, cancellationToken, functionOutputCache, stressTestIds);
             if (cancellationToken.IsCancellationRequested) return null;
 
             DataTable results = GetResults(data, cancellationToken);
@@ -30,7 +31,7 @@ namespace vApus.Results {
 
             return results;
         }
-        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds) {
+        protected override ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds) {
             var data = new ConcurrentDictionary<string, DataTable>();
 
             data.TryAdd("stresstests", ReaderAndCombiner.GetStressTests(cancellationToken, databaseActions, stressTestIds, "Id", "StressTest", "Connection"));
@@ -59,7 +60,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "SameAsRequestIndex", "RequestIndex", "InParallelWithPrevious", "SentAtInTicksSinceEpochUtc", "TimeToLastByteInTicks", "DelayInMilliseconds", "Length(Error) As Error", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, functionOutputCache, runResults, "Id", "Rerun", "VirtualUser", "UserAction", "SameAsRequestIndex", "RequestIndex", "Request", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);
@@ -293,8 +294,8 @@ namespace vApus.Results {
                     Parallel.ForEach(timeToLastBytesInTicks, (item, loopState) => {
                         if (cancellationToken.IsCancellationRequested) loopState.Break();
                         IEnumerable<double> orderedValues;
-                        perc95TimeToLastBytesInTicks.TryAdd(item.Key, PercentileCalculator<double>.Get(timeToLastBytesInTicks[item.Key], 95, out orderedValues));
-                        perc99TimeToLastBytesInTicks.TryAdd(item.Key, PercentileCalculator<double>.Get(orderedValues, 99));
+                        perc95TimeToLastBytesInTicks.TryAdd(item.Key, RandomUtils.PercentileCalculator<double>.Get(timeToLastBytesInTicks[item.Key], 95, out orderedValues));
+                        perc99TimeToLastBytesInTicks.TryAdd(item.Key, RandomUtils.PercentileCalculator<double>.Get(orderedValues, 99));
 
                         int top5Count = Convert.ToInt32(orderedValues.Count() * 0.05);
                         if (top5Count == 0)

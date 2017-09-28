@@ -5,17 +5,19 @@
  * Author(s):
  *    Dieter Vandroemme
  */
+using RandomUtils;
 using RandomUtils.Log;
 using System;
 using System.Collections.Concurrent;
 using System.Data;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using vApus.Util;
 
 namespace vApus.Results {
     internal abstract class BaseResultSetCalculator {
-        public abstract DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds);
+        public abstract DataTable Get(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds);
         protected DataTable CreateEmptyDataTable(string name, params string[] columnNames) {
             var objectType = typeof(object);
             var dataTable = new DataTable(name);
@@ -30,7 +32,7 @@ namespace vApus.Results {
         /// <param name="cancellationToken"></param>
         /// <param name="stressTestIds"></param>
         /// <returns>Label and data table</returns>
-        protected abstract ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, params int[] stressTestIds);
+        protected abstract ConcurrentDictionary<string, DataTable> GetData(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, params int[] stressTestIds);
         /// <summary>
         /// Get data tables per run. It is possible that one data table has requests with different run result ids, because of combining homogeneous results. Take this into account!
         /// </summary>
@@ -40,10 +42,12 @@ namespace vApus.Results {
         /// <param name="threads">The number of threads that should be used to query the database.</param>
         /// <param name="columns"></param>
         /// <returns></returns>
-        protected DataTable[] GetRequestResultsPerRunThreaded(DatabaseActions databaseActions, CancellationToken cancellationToken, DataTable runResults, params string[] columns) {
-           // threads = 1;
-            int runCount = runResults.Rows.Count;
+        protected DataTable[] GetRequestResultsPerRunThreaded(DatabaseActions databaseActions, CancellationToken cancellationToken, FunctionOutputCache functionOutputCache, DataTable runResults, params string[] columns) {
+            var cacheEntry = functionOutputCache.GetOrAdd(MethodInfo.GetCurrentMethod(), columns);
+            var cacheEntryDt = cacheEntry.ReturnValue as DataTable[];
+            if (cacheEntryDt != null) return cacheEntryDt;
 
+            int runCount = runResults.Rows.Count;
 
             //Adaptive parallelization, trying not to cripple the machine.
             int threads = Environment.ProcessorCount - 1;
@@ -72,20 +76,23 @@ namespace vApus.Results {
                 inclLower = exclUpper;
             }
 
-            var parts = new DataTable[runResultIds.Length];
+            cacheEntryDt = new DataTable[runResultIds.Length];
             Parallel.For(0, runResultIds.Length, (i, loopState) => {
            // for (int i = 0; i != runResultIds.Length; i++)
                 using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 }) {
                    if (cancellationToken.IsCancellationRequested) loopState.Break();
                     try {
-                        parts[i] = ReaderAndCombiner.GetRequestResults(cancellationToken, dba, runResultIds[i], columns);
+                        cacheEntryDt[i] = ReaderAndCombiner.GetRequestResults(cancellationToken, dba, runResultIds[i], columns);
                     }
                     catch (Exception ex) {
                         Loggers.Log(Level.Error, "Failed at getting a run result part.", ex, new object[] { threads, columns });
                     }
                 }
             });
-            return parts;
+
+            cacheEntry.ReturnValue = cacheEntryDt;
+
+            return cacheEntryDt;
         }
     }
 }

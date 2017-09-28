@@ -614,7 +614,7 @@ namespace vApus.Results {
                             return cacheEntryDt;
                         }
 
-                        cacheEntry.ReturnValue = AverageConcurrencyResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, stressTestIds);
+                        cacheEntry.ReturnValue = AverageConcurrencyResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, _functionOutputCache, stressTestIds);
 
                         GC.Collect();
                     }
@@ -654,7 +654,7 @@ namespace vApus.Results {
                             return cacheEntryDt;
                         }
 
-                        DataTable averageUserActions = AverageUserActionResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, stressTestIds);
+                        DataTable averageUserActions = AverageUserActionResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, _functionOutputCache, stressTestIds);
 
                         cacheEntry.ReturnValue = averageUserActions;
 
@@ -696,7 +696,7 @@ namespace vApus.Results {
                             return cacheEntryDt;
                         }
 
-                        cacheEntry.ReturnValue = AverageRequestResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, stressTestIds);
+                        cacheEntry.ReturnValue = AverageRequestResultsCalculator.GetInstance().Get(_databaseActions, cancellationToken, _functionOutputCache, stressTestIds);
 
                         GC.Collect();
                     }
@@ -2008,7 +2008,7 @@ namespace vApus.Results {
                             return cacheEntryDt;
                         }
 
-                        cacheEntry.ReturnValue = ResponseTimeDistributionForRequestsPerConcurrencyCalculator.GetInstance().Get(_databaseActions, cancellationToken, stressTestIds);
+                        cacheEntry.ReturnValue = ResponseTimeDistributionForRequestsPerConcurrencyCalculator.GetInstance().Get(_databaseActions, cancellationToken, _functionOutputCache, stressTestIds);
 
                         GC.Collect();
                     }
@@ -2036,7 +2036,7 @@ namespace vApus.Results {
                             return cacheEntryDt;
                         }
 
-                        cacheEntry.ReturnValue = ResponseTimeDistributionForUserActionsPerConcurrencyCalculator.GetInstance().Get(_databaseActions, cancellationToken, stressTestIds);
+                        cacheEntry.ReturnValue = ResponseTimeDistributionForUserActionsPerConcurrencyCalculator.GetInstance().Get(_databaseActions, cancellationToken, _functionOutputCache, stressTestIds);
 
                         GC.Collect();
                     }

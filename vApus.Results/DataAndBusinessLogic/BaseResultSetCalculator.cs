@@ -40,11 +40,14 @@ namespace vApus.Results {
         /// <param name="threads">The number of threads that should be used to query the database.</param>
         /// <param name="columns"></param>
         /// <returns></returns>
-        protected DataTable[] GetRequestResultsPerRunThreaded(DatabaseActions databaseActions, CancellationToken cancellationToken, DataTable runResults, int threads, params string[] columns) {
+        protected DataTable[] GetRequestResultsPerRunThreaded(DatabaseActions databaseActions, CancellationToken cancellationToken, DataTable runResults, params string[] columns) {
            // threads = 1;
             int runCount = runResults.Rows.Count;
 
-            //Adaptive parallelization.
+
+            //Adaptive parallelization, trying not to cripple the machine.
+            int threads = Environment.ProcessorCount - 1;
+
             if (threads > Environment.ProcessorCount) threads = Environment.ProcessorCount;
             if (threads > runCount) threads = runCount;
             if (threads < 1) threads = 1;

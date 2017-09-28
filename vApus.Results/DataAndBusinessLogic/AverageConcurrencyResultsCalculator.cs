@@ -83,7 +83,7 @@ namespace vApus.Results {
 
             data.TryAdd("runresults", runResults);
 
-            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, 4, "Id", "VirtualUser", "UserAction", "RequestIndex", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
+            DataTable[] parts = GetRequestResultsPerRunThreaded(databaseActions, cancellationToken, runResults, "Id", "VirtualUser", "UserAction", "RequestIndex", "InParallelWithPrevious", "TimeToLastByteInTicks", "DelayInMilliseconds", "SentAtInTicksSinceEpochUtc", "Length(Error) As Error", "RunResultId");
             //A merge is way to slow. Needed rows will be extracted when getting results.
             for (int i = 0; i != parts.Length; i++)
                 data.TryAdd("requestresults" + i, parts[i]);

@@ -50,9 +50,9 @@ namespace vApus.Results {
             int runCount = runResults.Rows.Count;
 
             //Adaptive parallelization, trying not to cripple the machine.
-            int threads = Environment.ProcessorCount - 1;
+            int threads = 8;
 
-            if (threads > Environment.ProcessorCount) threads = Environment.ProcessorCount;
+            if (threads > Environment.ProcessorCount - 1) threads = Environment.ProcessorCount - 1;
             if (threads > runCount) threads = runCount;
             if (threads < 1) threads = 1;
 
@@ -78,9 +78,9 @@ namespace vApus.Results {
 
             cacheEntryDt = new DataTable[runResultIds.Length];
             Parallel.For(0, runResultIds.Length, (i, loopState) => {
-           // for (int i = 0; i != runResultIds.Length; i++)
+                // for (int i = 0; i != runResultIds.Length; i++)
                 using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 }) {
-                   if (cancellationToken.IsCancellationRequested) loopState.Break();
+                    if (cancellationToken.IsCancellationRequested) loopState.Break();
                     try {
                         cacheEntryDt[i] = ReaderAndCombiner.GetRequestResults(cancellationToken, dba, runResultIds[i], columns);
                     }

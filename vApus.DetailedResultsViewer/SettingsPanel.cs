@@ -17,6 +17,8 @@ using System.Windows.Forms;
 using vApus.Results;
 using vApus.Util;
 using WeifenLuo.WinFormsUI.Docking;
+using System.Linq;
+using System.Collections.Concurrent;
 
 namespace vApus.DetailedResultsViewer {
     public partial class SettingsPanel : DockablePanel {
@@ -24,9 +26,9 @@ namespace vApus.DetailedResultsViewer {
         public event EventHandler<ResultsSelectedEventArgs> ResultsSelected;
         public event EventHandler CancelGettingResults, DisableResultsPanel;
 
+        private readonly object _lock = new object();
+
         private MySQLServerDialog _mySQLServerDialog = new MySQLServerDialog();
-        [ThreadStatic]
-        private static FilterDatabasesWorkItem _filterDatabasesWorkItem;
         private AutoResetEvent _waitHandle = new AutoResetEvent(false);
 
         private ResultsHelper _resultsHelper;
@@ -77,6 +79,7 @@ namespace vApus.DetailedResultsViewer {
         private void llblRefresh_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) { RefreshDatabases(true); }
         private void filterDatabases_FilterChanged(object sender, EventArgs e) { RefreshDatabases(false); }
         public void RefreshDatabases(bool setAvailableTags) {
+            this.Enabled = false;
             var databaseActions = SetServerConnectStateInGui();
 
             _dataSource = null;
@@ -89,12 +92,38 @@ namespace vApus.DetailedResultsViewer {
                 if (ResultsSelected != null) ResultsSelected(this, new ResultsSelectedEventArgs(null, 0));
             }
             else {
-                if (setAvailableTags) filterResults.SetAvailableTags(databaseActions);
-                FillDatabasesDataGridView(databaseActions);
+                string[] readyDbs = GetReadyDBs(databaseActions);
+                if (setAvailableTags) filterResults.SetAvailableTags(databaseActions, readyDbs);
+                FillDatabasesDataGridView(databaseActions, readyDbs);
                 cboStressTest.Enabled = true;
                 btnOverviewExportToExcel.Enabled = btnDeleteSelectedDbs.Enabled = _dataSource.Rows.Count != 0;
             }
+            this.Enabled = true;
         }
+
+        private string[] GetReadyDBs(DatabaseActions databaseActions) {
+            var bag = new ConcurrentBag<string>();
+            var temp = databaseActions.GetDataTable("SELECT TABLE_SCHEMA FROM information_schema.TABLES WHERE TABLE_NAME IN ('resultsreadystate');");
+
+            Parallel.ForEach(temp.Rows.Cast<DataRow>().ToArray(), new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (DataRow rrDB) => {
+                string db = rrDB.ItemArray[0] as string;
+                if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
+                    try {
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString }) {
+                            var dt = dba.GetDataTable("Select * from " + db + ".resultsreadystate;");
+                            if (dt.Rows.Count == 1 && dt.Rows[0]["State"] as string == "Ready")
+                                bag.Add(db);
+                        }
+                    }
+                    catch {
+                        //Corrup db.
+                    }
+                }
+            });
+
+            return bag.OrderByDescending(x => x).ToArray();
+        }
+
         private DatabaseActions SetServerConnectStateInGui() {
             lblConnectToMySQL.Text = "Connect to a results MySQL server...";
             toolTip.SetToolTip(lblConnectToMySQL, null);
@@ -118,7 +147,7 @@ namespace vApus.DetailedResultsViewer {
             return null;
         }
 
-        private void FillDatabasesDataGridView(DatabaseActions databaseActions) {
+        private void FillDatabasesDataGridView(DatabaseActions databaseActions, string[] readyDbs) {
             Cursor = Cursors.WaitCursor;
             try {
                 _dataSource = null;
@@ -130,45 +159,17 @@ namespace vApus.DetailedResultsViewer {
                 _dataSource.Columns.Add("Description");
                 _dataSource.Columns.Add("Database");
 
-                DataTable dbs = new DataTable("dbs");
-                dbs.Columns.Add("db");
-
-                var temp = databaseActions.GetDataTable("Show Databases;");
-                foreach (DataRow rrDB in temp.Rows) {
-                    string db = rrDB.ItemArray[0] as string;
-                    if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
-                        bool canAdd = true;
-                        try {
-                            DataTable dt = databaseActions.GetDataTable("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME IN ('resultsreadystate') AND TABLE_SCHEMA='" + db + "';");
-                            if (dt.Rows.Count != 0) {
-                                dt = databaseActions.GetDataTable("Select * from " + db + ".resultsreadystate;");
-                                if (dt.Rows.Count == 1)
-                                    canAdd = (dt.Rows[0]["State"] as string == "Ready");
-                            }
-                        }
-                        catch {
-                            //support older dbs.
-                        }
-
-                        if (canAdd) dbs.Rows.Add(db);
-                    }
-                }
-
-                foreach (DataRow dbsr in dbs.Rows) {
-                    string database = dbsr.ItemArray[0] as string;
+                Parallel.ForEach(readyDbs, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (db) => {
                     try {
-                        //Thread.CurrentThread.CurrentCulture = cultureInfo;
-                        if (_filterDatabasesWorkItem == null) _filterDatabasesWorkItem = new FilterDatabasesWorkItem();
-
-                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString }) {
-                            var arr = _filterDatabasesWorkItem.FilterDatabase(dba, database, filter);
-                            if (arr != null) _dataSource.Rows.Add(arr);
-                        }
+                        object[] arr = null;
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString })
+                            arr = FilterAndFormatDatabase(dba, db, filter);
+                        if (arr != null) lock (_lock) _dataSource.Rows.Add(arr);
                     }
                     catch {
-                        //Ignore
+                        //Corrup db.
                     }
-                }
+                });
 
                 _dataSource.DefaultView.Sort = "CreatedAt DESC";
                 _dataSource = _dataSource.DefaultView.ToTable();
@@ -185,8 +186,61 @@ namespace vApus.DetailedResultsViewer {
                     if (dgvDatabases.Rows.Count != 0) dgvDatabases.Rows[0].Selected = true;
                 }
             }
-            catch { }
+            catch {
+            }
             try { if (!Disposing && !IsDisposed) Cursor = Cursors.Arrow; } catch { }
+        }
+        public object[] FilterAndFormatDatabase(DatabaseActions databaseActions, string database, string filter) {
+            object[] itemArray = new object[4];
+
+            //Get the tags
+            var tags = databaseActions.GetDataTable("Select Tag From " + database + ".tags");
+            string t = string.Empty;
+            if (tags.Rows.Count != 0) {
+                int countMinusOne = tags.Rows.Count - 1;
+                if (tags.Rows.Count > countMinusOne)
+                    for (int i = 0; i != countMinusOne; i++) t += tags.Rows[i].ItemArray[0] + ", ";
+                t += tags.Rows[countMinusOne].ItemArray[0];
+            }
+            itemArray[1] = t.Trim();
+
+            //Get the description
+            var description = databaseActions.GetDataTable("Select Description From " + database + ".description");
+            foreach (DataRow dr in description.Rows) {
+                itemArray[2] = dr.ItemArray[0];
+                break;
+            }
+
+            bool canAdd = true;
+            if (filter.Length != 0) {
+                string tagsAndDescription = itemArray[1] as string + " " + itemArray[2] as string;
+
+                //Filter on tags and description.
+                List<int> rows, columns, matchLengths;
+                vApus.Util.FindAndReplace.Find(filter, tagsAndDescription, out rows, out columns, out matchLengths, false, true);
+                if (rows.Count == 0) canAdd = false;
+            }
+
+            if (canAdd) {
+                //Get the DateTime, to be formatted later.
+                string[] dtParts = database.Substring(5).Split('_');//yyyy_MM_dd_HH_mm_ss_fffffff or MM_dd_yyyy_HH_mm_ss_fffffff
+
+                bool yearFirst = dtParts[0].Length == 4;
+                int year = yearFirst ? int.Parse(dtParts[0]) : int.Parse(dtParts[2]);
+                int month = yearFirst ? int.Parse(dtParts[1]) : int.Parse(dtParts[0]);
+                int day = yearFirst ? int.Parse(dtParts[2]) : int.Parse(dtParts[1]);
+                int hour = int.Parse(dtParts[3]);
+                int minute = int.Parse(dtParts[4]);
+                int second = int.Parse(dtParts[5]);
+                double rest = double.Parse(dtParts[6]) / Math.Pow(10, dtParts[6].Length);
+                DateTime dt = new DateTime(year, month, day, hour, minute, second);
+                dt = dt.AddSeconds(rest);
+                itemArray[0] = dt.ToString();
+
+                itemArray[3] = database;
+                return itemArray;
+            }
+            return null;
         }
 
         private void dgvDatabases_RowEnter(object sender, DataGridViewCellEventArgs e) {
@@ -276,72 +330,6 @@ namespace vApus.DetailedResultsViewer {
                     if (cboStressTest.Items.Count == 1) ++stressTestId;
                     ResultsSelected(this, new ResultsSelectedEventArgs(_currentRow[3] as string, stressTestId));
                 }
-            }
-        }
-
-        private class FilterDatabasesWorkItem {
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="databaseActions"></param>
-            /// <param name="database"></param>
-            /// <param name="filter"></param>
-            /// <returns>Contents of a data row.</returns>
-            public object[] FilterDatabase(DatabaseActions databaseActions, string database, string filter) {
-                try {
-                    object[] itemArray = new object[4];
-
-                    //Get the tags
-                    var tags = databaseActions.GetDataTable("Select Tag From " + database + ".tags");
-                    string t = string.Empty;
-                    if (tags.Rows.Count != 0) {
-                        int countMinusOne = tags.Rows.Count - 1;
-                        if (tags.Rows.Count > countMinusOne)
-                            for (int i = 0; i != countMinusOne; i++) t += tags.Rows[i].ItemArray[0] + ", ";
-                        t += tags.Rows[countMinusOne].ItemArray[0];
-                    }
-                    itemArray[1] = t.Trim();
-
-                    //Get the description
-                    var description = databaseActions.GetDataTable("Select Description From " + database + ".description");
-                    foreach (DataRow dr in description.Rows) {
-                        itemArray[2] = dr.ItemArray[0];
-                        break;
-                    }
-
-                    bool canAdd = true;
-                    if (filter.Length != 0) {
-                        string tagsAndDescription = itemArray[1] as string + " " + itemArray[2] as string;
-
-                        //Filter on tags and description.
-                        List<int> rows, columns, matchLengths;
-                        vApus.Util.FindAndReplace.Find(filter, tagsAndDescription, out rows, out columns, out matchLengths, false, true);
-                        if (rows.Count == 0) canAdd = false;
-                    }
-
-                    if (canAdd) {
-                        //Get the DateTime, to be formatted later.
-                        string[] dtParts = database.Substring(5).Split('_');//yyyy_MM_dd_HH_mm_ss_fffffff or MM_dd_yyyy_HH_mm_ss_fffffff
-
-                        bool yearFirst = dtParts[0].Length == 4;
-                        int year = yearFirst ? int.Parse(dtParts[0]) : int.Parse(dtParts[2]);
-                        int month = yearFirst ? int.Parse(dtParts[1]) : int.Parse(dtParts[0]);
-                        int day = yearFirst ? int.Parse(dtParts[2]) : int.Parse(dtParts[1]);
-                        int hour = int.Parse(dtParts[3]);
-                        int minute = int.Parse(dtParts[4]);
-                        int second = int.Parse(dtParts[5]);
-                        double rest = double.Parse(dtParts[6]) / Math.Pow(10, dtParts[6].Length);
-                        DateTime dt = new DateTime(year, month, day, hour, minute, second);
-                        dt = dt.AddSeconds(rest);
-                        itemArray[0] = dt.ToString();
-
-                        itemArray[3] = database;
-                        return itemArray;
-                    }
-                }
-                catch {
-                }
-                return null;
             }
         }
 

@@ -7,11 +7,12 @@
  */
 using RandomUtils;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using vApus.Util;
 
@@ -20,11 +21,6 @@ namespace vApus.DetailedResultsViewer {
         public event EventHandler FilterChanged;
 
         private System.Windows.Forms.Timer _filterChangedDelayedTimer = new System.Windows.Forms.Timer() { Interval = 1000 };
-        [ThreadStatic]
-        private static GetTagsWorkItem _getTagsWorkItem;
-
-        private AutoResetEvent _waitHandle = new AutoResetEvent(false);
-        private readonly object _lock = new object();
 
         public string Filter { get { return txtFilter.Text.Trim(); } }
 
@@ -34,82 +30,35 @@ namespace vApus.DetailedResultsViewer {
             _filterChangedDelayedTimer.Tick += _filterChangedDelayedTimer_Tick;
         }
 
-        ~FilterResultsControl() {
-            try { _waitHandle.Dispose(); } catch {
-                //Ignore.
-            }
-        }
-
         /// <summary>
         /// Duplicate tags are ignored.
         /// </summary>
         /// <param name="tags"></param>
-        public void SetAvailableTags(DatabaseActions databaseActions) {
+        public void SetAvailableTags(DatabaseActions databaseActions, string[] readyDbs) {
             Cursor = Cursors.WaitCursor;
             try {
-                var tags = new SortedSet<string>();
+                var bag = new ConcurrentDictionary<string, string>();
 
-                DataTable dbs = new DataTable("dbs");
-                dbs.Columns.Add("db");
-
-                var temp = databaseActions.GetDataTable("Show Databases;");
-                foreach (DataRow rrDB in temp.Rows) {
-                    string db = rrDB.ItemArray[0] as string;
-                    if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
-                        bool canAdd = true;
-                        try {
-                            DataTable dt = databaseActions.GetDataTable("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME IN ('resultsreadystate') AND TABLE_SCHEMA='" + db + "';");
-                            if (dt.Rows.Count != 0) {
-                                dt = databaseActions.GetDataTable("Select * from " + db + ".resultsreadystate;");
-                                if (dt.Rows.Count == 1)
-                                    canAdd = (dt.Rows[0]["State"] as string == "Ready");
+                Parallel.ForEach(readyDbs, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (db) => {
+                    try {
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString })
+                            foreach (DataRow row in dba.GetDataTable("Select Tag from " + db + ".tags;").Rows) {
+                                string tag = (row.ItemArray[0] as string).Trim().ToLowerInvariant();
+                                if (tag.Length != 0) bag.TryAdd(tag, "");
                             }
-                        }
-                        catch {
-                            //support older dbs.
-                        }
-
-                        if (canAdd) dbs.Rows.Add(db);
                     }
-                }
-
-                int count = dbs.Rows.Count;
-                int done = 0;
-                foreach (DataRow rrDB in dbs.Rows) {
-                    string database = rrDB.ItemArray[0] as string;
-                    ThreadPool.QueueUserWorkItem((object state) => {
-                        if (done < count) {
-                            try {
-                                if (_getTagsWorkItem == null) _getTagsWorkItem = new GetTagsWorkItem();
-                                lock (_lock) {
-                                    var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString };
-
-                                    foreach (string t in _getTagsWorkItem.GetTags(dba, state as string))
-                                        if (t.Length != 0 && !tags.Contains(t)) tags.Add(t);
-                                    dba.ReleaseConnection();
-                                    ++done;
-                                }
-                                if (done == count) _waitHandle.Set();
-                            } catch {
-                                try {
-                                    lock (_lock) done = int.MaxValue;
-                                    _waitHandle.Set();
-                                } catch {
-                                    //Ignore.
-                                }
-                            }
-                        }
-                    }, database);
-
-                }
-                if (count != 0) _waitHandle.WaitOne();
-                SetAvailableTags(tags);
-            } catch {
+                    catch {
+                        //corrupt db
+                    }
+                });
+                SetAvailableTags(bag.Keys.OrderBy(x => x).ToArray());
+            }
+            catch {
                 //Ignore.
             }
             try { if (!Disposing && !IsDisposed) Cursor = Cursors.Arrow; } catch { }
         }
-        private void SetAvailableTags(SortedSet<string> tags) {
+        private void SetAvailableTags(string[] tags) {
             flpTags.AutoScroll = false;
             flpTags.SuspendLayout();
             ClearAvailableTags();
@@ -139,12 +88,12 @@ namespace vApus.DetailedResultsViewer {
         private void txtFilter_KeyPress(object sender, KeyPressEventArgs e) { if (e.KeyChar == '\r') e.Handled = true; }
 
         private void txtFilter_TextChanged(object sender, EventArgs e) {
-                _filterChangedDelayedTimer.Stop();
-                _filterChangedDelayedTimer.Start();
+            _filterChangedDelayedTimer.Stop();
+            _filterChangedDelayedTimer.Start();
         }
         private void _filterChangedDelayedTimer_Tick(object sender, EventArgs e) {
-                _filterChangedDelayedTimer.Stop();
-                InvokeFilterChanged();
+            _filterChangedDelayedTimer.Stop();
+            InvokeFilterChanged();
         }
         private void InvokeFilterChanged() {
             if (FilterChanged != null) {
@@ -152,15 +101,6 @@ namespace vApus.DetailedResultsViewer {
                 FilterChanged(this, null);
                 txtFilter.Focus();
                 txtFilter.Select(caretPosition, 0);
-            }
-        }
-
-        private class GetTagsWorkItem {
-            public List<string> GetTags(DatabaseActions databaseActions, string database) {
-                var tags = new List<string>();
-                var t = databaseActions.GetDataTable("Select Tag from " + database + ".tags;");
-                foreach (DataRow row in t.Rows) tags.Add((row.ItemArray[0] as string).Trim().ToLowerInvariant());
-                return tags;
             }
         }
 

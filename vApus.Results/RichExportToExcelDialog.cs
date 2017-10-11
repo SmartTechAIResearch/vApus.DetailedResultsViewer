@@ -352,7 +352,7 @@ namespace vApus.Results {
         private void RichExportToExcel_ExportProgress(object sender, RichExportToExcel.ExportEventArgs e) {
             SynchronizationContextWrapper.SynchronizationContext.Send((state) => {
                 var args = state as RichExportToExcel.ExportEventArgs;
-                btnExportToExcel.Text = "Exported " + args.Item + " of " + args.Count;
+                btnExportToExcel.Text = args.SubItem == 0 ? "Exported " + args.Item + " of " + args.Count : "Exported " + args.Item + "#" + args.SubItem + " of " + args.Count;
             }, e);
         }
 

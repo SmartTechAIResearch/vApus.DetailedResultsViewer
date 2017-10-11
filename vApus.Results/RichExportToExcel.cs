@@ -304,17 +304,18 @@ namespace vApus.Results {
                     string docFileName = (stressTest + "_" + dataSet).ReplaceInvalidWindowsFilenameChars('_').Replace(' ', '_').Replace("__", "_") + ".xlsx";
                     string firstWorksheet = null;
 
-                    if (ExportStarted != null) ExportStarted.Invoke(null, new ExportEventArgs(item, count));
+                    int subItem = 0;
+                    if (ExportStarted != null) ExportStarted.Invoke(null, new ExportEventArgs(item, subItem, count));
 
                     foreach (Del del in dataSetStructure[dataSet]) {
                         string worksheet = del.Invoke(dataSet, doc, stressTestId, resultsHelper, token);
                         if (firstWorksheet == null) firstWorksheet = worksheet;
 
+                        if (ExportFinished != null) ExportFinished.Invoke(null, new ExportEventArgs(item, ++subItem, count));
 
                     }
 
-                    ++item;
-                    if (ExportFinished != null) ExportFinished.Invoke(null, new ExportEventArgs(item, count));
+                    if (ExportFinished != null) ExportFinished.Invoke(null, new ExportEventArgs(++item, 0, count));
 
 
                     if (firstWorksheet == null) continue;
@@ -970,10 +971,22 @@ namespace vApus.Results {
         }
 
         public class ExportEventArgs : EventArgs {
+            /// <summary>
+            /// Excel document
+            /// </summary>
             public int Item { get; private set; }
+            /// <summary>
+            /// Excel worksheet
+            /// </summary>
+            public int SubItem { get; private set; }
+            /// <summary>
+            /// Total Excel documents
+            /// </summary>
             public int Count { get; private set; }
-            public ExportEventArgs(int item, int count) {
+
+            public ExportEventArgs(int item, int subItem, int count) {
                 Item = item;
+                SubItem = subItem;
                 Count = count;
             }
         }

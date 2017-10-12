@@ -5,7 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using RandomUtils;
+using SizingServers.Util;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -294,8 +294,8 @@ namespace vApus.Results {
                     Parallel.ForEach(timeToLastBytesInTicks, (item, loopState) => {
                         if (cancellationToken.IsCancellationRequested) loopState.Break();
                         IEnumerable<double> orderedValues;
-                        perc95TimeToLastBytesInTicks.TryAdd(item.Key, RandomUtils.PercentileCalculator<double>.Get(timeToLastBytesInTicks[item.Key], 95, out orderedValues));
-                        perc99TimeToLastBytesInTicks.TryAdd(item.Key, RandomUtils.PercentileCalculator<double>.Get(orderedValues, 99));
+                        perc95TimeToLastBytesInTicks.TryAdd(item.Key, PercentileCalculator<double>.Get(timeToLastBytesInTicks[item.Key], 95, out orderedValues));
+                        perc99TimeToLastBytesInTicks.TryAdd(item.Key, PercentileCalculator<double>.Get(orderedValues, 99));
 
                         int top5Count = Convert.ToInt32(orderedValues.Count() * 0.05);
                         if (top5Count == 0)

@@ -13,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using vApus.Util;
 using System.Linq;
-using RandomUtils;
+using SizingServers.Util;
 
 namespace vApus.Results {
     internal sealed class ResponseTimeDistributionForRequestsPerConcurrencyCalculator : BaseResultSetCalculator {

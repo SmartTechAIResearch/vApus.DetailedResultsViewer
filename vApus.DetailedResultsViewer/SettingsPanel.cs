@@ -5,8 +5,8 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using RandomUtils;
-using RandomUtils.Log;
+using SizingServers.Util;
+using SizingServers.Log;
 using System;
 using System.Collections.Generic;
 using System.Data;

@@ -5,7 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using RandomUtils;
+using SizingServers.Util.WinForms;
 using System;
 using System.Collections.Concurrent;
 using System.Data;

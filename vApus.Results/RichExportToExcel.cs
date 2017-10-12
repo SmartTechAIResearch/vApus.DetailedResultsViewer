@@ -264,16 +264,6 @@ namespace vApus.Results {
         }
 
         /// <summary>
-        /// Do the export using all stress test ids.
-        /// </summary>
-        /// <param name="fullPath"></param>
-        /// <param name="resultsHelper"></param>
-        /// <param name="toExport"></param>
-        /// <param name="token"></param>
-        public static void Do(string fullExportPath, ResultsHelper resultsHelper, IEnumerable<string> toExport, CancellationToken token) {
-            Do(fullExportPath, new int[] { -1 }, resultsHelper, toExport, token);
-        }
-        /// <summary>
         /// Do the export certain stress test ids. This should be either all or one.
         /// </summary>
         /// <param name="fullExportPath"></param>
@@ -291,8 +281,10 @@ namespace vApus.Results {
 
             int item = 0, count = dataSetStructure.Count * stressTestIds.Length;
 
-            foreach (string dataSet in dataSetStructure.Keys) {
-                foreach (int stressTestId in stressTestIds) {
+            foreach (int stressTestId in stressTestIds) {
+                if (resultsHelper != null) resultsHelper.ClearCache(); //Keeping the cache as clean as possible.
+                foreach (string dataSet in dataSetStructure.Keys) {
+
                     var doc = new SLDocument();
 
                     DataTable stressTests = resultsHelper.GetStressTests(stressTestId);

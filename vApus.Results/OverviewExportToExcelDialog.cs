@@ -5,7 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using RandomUtils.Log;
+using SizingServers.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

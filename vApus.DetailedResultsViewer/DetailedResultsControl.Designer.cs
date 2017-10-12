@@ -1,4 +1,4 @@
-﻿using RandomUtils.Log;
+﻿using SizingServers.Log;
 using System;
 namespace vApus.StressTest {
     partial class DetailedResultsControl {

@@ -114,13 +114,14 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RandomUtils, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.dll</HintPath>
+    <Reference Include="SizingServers.Log">
+      <HintPath>..\Prerequisites\SizingServers.Log.dll</HintPath>
     </Reference>
-    <Reference Include="RandomUtils.Log, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.Log.dll</HintPath>
+    <Reference Include="SizingServers.Util">
+      <HintPath>..\Prerequisites\SizingServers.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="SizingServers.Util.Winforms">
+      <HintPath>..\Prerequisites\SizingServers.Util.Winforms.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -100,11 +100,11 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RandomUtils">
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.dll</HintPath>
+    <Reference Include="SizingServers.Log">
+      <HintPath>..\Prerequisites\SizingServers.Log.dll</HintPath>
     </Reference>
-    <Reference Include="RandomUtils.Log">
-      <HintPath>..\Prerequisites\RandomUtils\RandomUtils.Log.dll</HintPath>
+    <Reference Include="SizingServers.Util">
+      <HintPath>..\Prerequisites\SizingServers.Util.dll</HintPath>
     </Reference>
     <Reference Include="SpreadsheetLight, Version=3.4.4.0, Culture=neutral, PublicKeyToken=32fbb46dc1730c57, processorArchitecture=MSIL">
       <HintPath>..\packages\SpreadsheetLight.3.4.4\lib\SpreadsheetLight.dll</HintPath>

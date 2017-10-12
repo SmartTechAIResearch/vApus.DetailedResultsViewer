@@ -5,7 +5,7 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using RandomUtils.Log;
+using SizingServers.Log;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,7 +18,7 @@ using System.Windows.Forms;
 using vApus.Util;
 using System.Linq;
 using System.Diagnostics;
-using RandomUtils;
+using SizingServers.Util;
 
 namespace vApus.Results {
     /// <summary>

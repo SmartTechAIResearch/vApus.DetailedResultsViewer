@@ -5,19 +5,17 @@
  * Author(s):
  *    Dieter Vandroemme
  */
-using MySql.Data.MySqlClient;
-using RandomUtils;
-using RandomUtils.Log;
+using SizingServers.Util;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using vApus.Util;
+using SizingServers.Log;
 
 namespace vApus.Results {
     /// <summary>

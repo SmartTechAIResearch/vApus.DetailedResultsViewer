@@ -42,16 +42,15 @@
             // btnExportToExcel
             // 
             this.btnExportToExcel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnExportToExcel.AutoSize = true;
             this.btnExportToExcel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnExportToExcel.BackColor = System.Drawing.SystemColors.Control;
             this.btnExportToExcel.FlatAppearance.BorderColor = System.Drawing.Color.DimGray;
             this.btnExportToExcel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnExportToExcel.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnExportToExcel.Location = new System.Drawing.Point(555, 584);
+            this.btnExportToExcel.Location = new System.Drawing.Point(533, 584);
             this.btnExportToExcel.MaximumSize = new System.Drawing.Size(9999, 24);
             this.btnExportToExcel.Name = "btnExportToExcel";
-            this.btnExportToExcel.Size = new System.Drawing.Size(117, 24);
+            this.btnExportToExcel.Size = new System.Drawing.Size(139, 24);
             this.btnExportToExcel.TabIndex = 30;
             this.btnExportToExcel.Text = "Export to Excel...";
             this.btnExportToExcel.UseVisualStyleBackColor = false;
@@ -152,9 +151,9 @@
             this.btnOverviewExport.Location = new System.Drawing.Point(371, 584);
             this.btnOverviewExport.MaximumSize = new System.Drawing.Size(9999, 24);
             this.btnOverviewExport.Name = "btnOverviewExport";
-            this.btnOverviewExport.Size = new System.Drawing.Size(178, 24);
+            this.btnOverviewExport.Size = new System.Drawing.Size(156, 24);
             this.btnOverviewExport.TabIndex = 26;
-            this.btnOverviewExport.Text = "Switch to overview export...";
+            this.btnOverviewExport.Text = "Go to overview export...";
             this.toolTip.SetToolTip(this.btnOverviewExport, "Export an overview / comparisson to Excel of test and monitor results for the sel" +
         "ected results database(s).");
             this.btnOverviewExport.UseVisualStyleBackColor = false;

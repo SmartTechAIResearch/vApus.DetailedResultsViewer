@@ -91,9 +91,9 @@
             this.btnRichExport.Location = new System.Drawing.Point(12, 121);
             this.btnRichExport.MaximumSize = new System.Drawing.Size(9999, 24);
             this.btnRichExport.Name = "btnRichExport";
-            this.btnRichExport.Size = new System.Drawing.Size(148, 24);
+            this.btnRichExport.Size = new System.Drawing.Size(126, 24);
             this.btnRichExport.TabIndex = 12;
-            this.btnRichExport.Text = "Switch to rich export...";
+            this.btnRichExport.Text = "Go to rich export...";
             this.btnRichExport.UseVisualStyleBackColor = false;
             this.btnRichExport.Click += new System.EventHandler(this.btnRichExport_Click);
             // 

@@ -33,7 +33,7 @@ namespace vApus.Results {
             foreach (string databaseName in databaseNames) {
                 string connectionString = ConnectionStringManager.GetCurrentConnectionString(databaseName);
 
-                using (var databaseActions = new DatabaseActions() { ConnectionString = connectionString }) {
+                using (var databaseActions = new DatabaseActions() { ConnectionString = connectionString, CommandTimeout = 600 }) {
                     var resultsHelper = new ResultsHelper();
                     resultsHelper.ConnectToExistingDatabase(databaseActions, databaseName);
 

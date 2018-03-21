@@ -2130,7 +2130,7 @@ namespace vApus.Results {
             lock (_lock) {
                 ClearCache();
                 try {
-                    _databaseActions = new DatabaseActions() { ConnectionString = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};table cache = true;", host, port, databaseName, user, password) };
+                    _databaseActions = new DatabaseActions() { ConnectionString = string.Format("Server={0};Port={1};Database={2};Uid={3};Pwd={4};table cache = true;", host, port, databaseName, user, password), CommandTimeout = 600 };
                     if (!_databaseActions.CanConnect()) throw new Exception("A connection to the results server could not be made!");
                     _databaseName = databaseName;
                 }

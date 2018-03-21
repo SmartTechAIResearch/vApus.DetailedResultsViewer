@@ -41,7 +41,7 @@ namespace vApus.DetailedResultsViewer {
 
                 Parallel.ForEach(readyDbs, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (db) => {
                     try {
-                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString })
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 })
                             foreach (DataRow row in dba.GetDataTable("Select Tag from " + db + ".tags;").Rows) {
                                 string tag = (row.ItemArray[0] as string).Trim().ToLowerInvariant();
                                 if (tag.Length != 0) bag.TryAdd(tag, "");

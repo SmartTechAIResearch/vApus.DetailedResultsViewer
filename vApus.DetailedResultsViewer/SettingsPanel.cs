@@ -109,7 +109,7 @@ namespace vApus.DetailedResultsViewer {
                 string db = rrDB.ItemArray[0] as string;
                 if (db.StartsWith("vapus", StringComparison.InvariantCultureIgnoreCase)) {
                     try {
-                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString }) {
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 }) {
                             var dt = dba.GetDataTable("Select * from " + db + ".resultsreadystate;");
                             if (dt.Rows.Count == 1 && dt.Rows[0]["State"] as string == "Ready")
                                 bag.Add(db);
@@ -162,7 +162,7 @@ namespace vApus.DetailedResultsViewer {
                 Parallel.ForEach(readyDbs, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (db) => {
                     try {
                         object[] arr = null;
-                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString })
+                        using (var dba = new DatabaseActions() { ConnectionString = databaseActions.ConnectionString, CommandTimeout = 600 })
                             arr = FilterAndFormatDatabase(dba, db, filter);
                         if (arr != null) lock (_lock) _dataSource.Rows.Add(arr);
                     }

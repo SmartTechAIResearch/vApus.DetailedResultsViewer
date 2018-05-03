@@ -462,7 +462,7 @@ namespace vApus.Results {
         private static string StressTestErrors(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
             DataTable dt = Prep(resultsHelper.GetErrors(token, stressTestId));
             string title = "Errors";
-            return MakeWorksheet(doc, dt, title, true, true);
+            return MakeWorksheet(doc, dt, title, false, false);
         }
 
         private static string Meta(string dataset, SLDocument doc, int stressTestId, ResultsHelper resultsHelper, CancellationToken token) {
